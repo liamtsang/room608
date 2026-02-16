@@ -15,10 +15,16 @@ interface TimelineTrackProps {
   onNearestProject: (id: number) => void
 }
 
+const DIM = 0.15
+const LIT = 0.7
+
 export const TimelineTrack = forwardRef<TimelineTrackHandle, TimelineTrackProps>(
   function TimelineTrack({ canvasWidth, ticks, selectedId, onNearestProject }, ref) {
     const x = useMotionValue(0)
     const containerRef = useRef<HTMLDivElement>(null)
+    const tickRefs = useRef<(HTMLDivElement | null)[]>([])
+    const dragStartX = useRef(0)
+    const dragStartVal = useRef(0)
     const isDragging = useRef(false)
     const [viewportWidth, setViewportWidth] = useState(
       typeof window !== 'undefined' ? window.innerWidth : 1024,
@@ -33,7 +39,6 @@ export const TimelineTrack = forwardRef<TimelineTrackHandle, TimelineTrackProps>
     const canvasCenter = canvasWidth / 2
     const maxDrag = Math.max(0, (canvasWidth - viewportWidth) / 2)
 
-    /** Given current x, find the nearest project tick and return its canvas-local x */
     const getNearestProject = useCallback(() => {
       const centerInCanvas = canvasCenter - x.get()
       let closest: { id: number; x: number; dist: number } | null = null
@@ -49,14 +54,38 @@ export const TimelineTrack = forwardRef<TimelineTrackHandle, TimelineTrackProps>
       return closest
     }, [ticks, x, canvasCenter])
 
-    // Update selection while dragging
+    const updateGlow = useCallback(() => {
+      const centerInCanvas = canvasCenter - x.get()
+
+      let closestIdx = 0
+      let closestDist = Infinity
+
+      for (let i = 0; i < ticks.length; i++) {
+        const dist = Math.abs(ticks[i].x - centerInCanvas)
+        if (dist < closestDist) {
+          closestDist = dist
+          closestIdx = i
+        }
+      }
+
+      for (let i = 0; i < ticks.length; i++) {
+        const el = tickRefs.current[i]
+        if (!el) continue
+        el.style.opacity = String(i === closestIdx ? LIT : DIM)
+      }
+    }, [ticks, canvasCenter, x])
+
     useMotionValueEvent(x, 'change', () => {
+      updateGlow()
       if (!isDragging.current) return
       const nearest = getNearestProject()
       if (nearest) onNearestProject(nearest.id)
     })
 
-    /** Animate x so that a given canvas position lands at viewport center */
+    useEffect(() => {
+      updateGlow()
+    }, [updateGlow])
+
     const snapTo = useCallback(
       (targetX: number) => {
         const dest = canvasCenter - targetX
@@ -66,7 +95,30 @@ export const TimelineTrack = forwardRef<TimelineTrackHandle, TimelineTrackProps>
       [canvasCenter, maxDrag, x],
     )
 
-    const handleDragEnd = useCallback(() => {
+    // Pointer-based drag — full control, no motion.dev drag reset
+    const handlePointerDown = useCallback(
+      (e: React.PointerEvent) => {
+        isDragging.current = true
+        dragStartX.current = e.clientX
+        dragStartVal.current = x.get()
+        ;(e.target as HTMLElement).setPointerCapture(e.pointerId)
+      },
+      [x],
+    )
+
+    const handlePointerMove = useCallback(
+      (e: React.PointerEvent) => {
+        if (!isDragging.current) return
+        const delta = e.clientX - dragStartX.current
+        const next = dragStartVal.current + delta
+        const clamped = Math.max(-maxDrag, Math.min(maxDrag, next))
+        x.set(clamped)
+      },
+      [x, maxDrag],
+    )
+
+    const handlePointerUp = useCallback(() => {
+      if (!isDragging.current) return
       isDragging.current = false
       const nearest = getNearestProject()
       if (nearest) {
@@ -81,20 +133,18 @@ export const TimelineTrack = forwardRef<TimelineTrackHandle, TimelineTrackProps>
       <motion.div
         ref={containerRef}
         className="timeline-track"
-        style={{ width: canvasWidth, x }}
+        style={{ width: canvasWidth, x, cursor: 'grab' }}
         drag="x"
-        dragConstraints={{ left: -maxDrag, right: maxDrag }}
-        dragElastic={0.08}
+        dragDirectionLock
+        dragConstraints={{ right: canvasWidth / 2, left: (canvasWidth / 2) * -1 }}
         dragMomentum={false}
-        onDragStart={() => {
-          isDragging.current = true
-        }}
-        onDragEnd={handleDragEnd}
-        whileDrag={{ cursor: 'grabbing' }}
       >
         {ticks.map((tick, i) => (
           <div
             key={i}
+            ref={(el) => {
+              tickRefs.current[i] = el
+            }}
             className={tick.isProject ? 'timeline-marker' : 'timeline-tick'}
             style={{ left: tick.x }}
             data-selected={tick.isProject && tick.project?.id === selectedId ? '' : undefined}
