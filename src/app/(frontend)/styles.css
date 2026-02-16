@@ -1,3 +1,17 @@
+@import 'tailwindcss';
+
+@font-face {
+  font-family: 'iA Writer Mono';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 400;
+  src:
+    url(https://cdn.jsdelivr.net/fontsource/fonts/ia-writer-mono@latest/latin-400-normal.woff2)
+      format('woff2'),
+    url(https://cdn.jsdelivr.net/fontsource/fonts/ia-writer-mono@latest/latin-400-normal.woff)
+      format('woff');
+}
+
 :root {
   --font-mono: 'Roboto Mono', monospace;
 }
@@ -21,12 +35,27 @@ body,
 }
 
 body {
-  font-family: system-ui;
+  --dot-bg: #cbbbb9;
+  --dot-color: #ad9f9d;
+  --dot-size: 2px;
+  --dot-space: 12px;
+  background:
+    linear-gradient(90deg, var(--dot-bg) calc(var(--dot-space) - var(--dot-size)), transparent 1%)
+      center / var(--dot-space) var(--dot-space),
+    linear-gradient(var(--dot-bg) calc(var(--dot-space) - var(--dot-size)), transparent 1%) center /
+      var(--dot-space) var(--dot-space),
+    var(--dot-color);
+}
+
+body {
+  font-family:
+    iA Writer Mono,
+    system-ui;
   font-size: 18px;
   line-height: 32px;
 
   margin: 0;
-  color: rgb(1000, 1000, 1000);
+  color: #000200;
 
   @media (max-width: 1024px) {
     font-size: 15px;
@@ -35,7 +64,6 @@ body {
 }
 
 img {
-  max-width: 100%;
   height: auto;
   display: block;
 }
@@ -64,7 +92,29 @@ h1 {
 }
 
 p {
-  margin: 24px 0;
+  width: fit-content;
+  max-width: 55ch;
+  --cell-border: 0.5px;
+  --cell-color: #c0b7a4;
+  --cell-fill: #d3c8b3;
+  background-image:
+    repeating-linear-gradient(
+      to right,
+      var(--cell-color) 0 var(--cell-border),
+      transparent var(--cell-border) 1ch
+    ),
+    repeating-linear-gradient(
+      to bottom,
+      var(--cell-color) 0 var(--cell-border),
+      transparent var(--cell-border) 1lh
+    ),
+    repeating-linear-gradient(to right, var(--cell-fill) 0 1ch, transparent 1ch calc(1ch));
+  background-size:
+    1ch 100%,
+    100% 1lh,
+    calc(1ch + var(--cell-border)) 100%;
+  background-position: -0.5px 0;
+  padding-right: 1ch;
 
   @media (max-width: 1024px) {
     margin: calc(var(--base) * 0.75) 0;
@@ -87,6 +137,87 @@ a {
 
 svg {
   vertical-align: middle;
+}
+
+/* ── Timeline ─────────────────────────────────────────── */
+
+.timeline {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 56px;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  z-index: 100;
+  overflow: hidden;
+  cursor: grab;
+  user-select: none;
+}
+
+.timeline-track {
+  position: relative;
+  height: 100%;
+  margin: 0 auto;
+}
+
+/* Minor ticks — short, evenly spaced */
+.timeline-tick {
+  position: absolute;
+  bottom: 12px;
+  width: 1px;
+  height: 12px;
+  background: rgba(255, 255, 255, 0.18);
+}
+
+/* Major ticks — project markers, taller */
+.timeline-marker {
+  position: absolute;
+  bottom: 12px;
+  width: 1px;
+  height: 28px;
+  background: rgba(255, 255, 255, 0.45);
+  transition: background 0.15s ease;
+}
+
+.timeline-marker[data-selected] {
+  background: rgba(255, 255, 255, 0.95);
+}
+
+/* Label floats above the selected marker */
+.timeline-marker-label {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  font-size: 10px;
+  line-height: 1.3;
+  font-family:
+    iA Writer Mono,
+    var(--font-mono),
+    monospace;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.timeline-marker[data-selected] .timeline-marker-label {
+  opacity: 1;
+}
+
+.timeline-marker-title {
+  font-weight: 500;
+}
+
+.timeline-marker-year {
+  font-size: 9px;
+  opacity: 0.5;
 }
 
 .home {
