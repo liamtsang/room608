@@ -2,18 +2,16 @@ import { useMemo } from 'react'
 import type { Project } from '@/payload-types'
 
 export const TIMELINE = {
-  /** Pixels between each minor tick */
-  TICK_SPACING: 8,
-  /** Number of minor ticks between each project marker */
-  TICKS_BETWEEN_PROJECTS: 8,
+  /** Pixels per month on the timeline */
+  PX_PER_MONTH: 8,
   /** Height of a project (major) tick */
   MAJOR_TICK_H: 28,
   /** Height of a minor tick */
   MINOR_TICK_H: 12,
   /** Tick line width */
   TICK_WIDTH: 1,
-  /** Extra minor ticks before first and after last project */
-  EDGE_TICKS: 6,
+  /** Extra months of padding before first and after last project */
+  EDGE_MONTHS: 6,
 } as const
 
 export interface TickMark {
@@ -27,10 +25,14 @@ export interface TickMark {
   projectIndex?: number
 }
 
+/** Returns the number of months between two dates (fractional) */
+function monthsBetween(a: Date, b: Date): number {
+  return (b.getFullYear() - a.getFullYear()) * 12 + (b.getMonth() - a.getMonth())
+}
+
 /**
- * Builds a uniformly-spaced ruler of ticks.
- * Projects are sorted by date and placed at regular intervals.
- * Minor ticks fill the gaps between them.
+ * Builds a timeline ruler where spacing is proportional to real time.
+ * One tick per month, with project markers placed at their actual dates.
  */
 export function useTimeline(projects: Project[]) {
   const sorted = useMemo(
@@ -46,29 +48,54 @@ export function useTimeline(projects: Project[]) {
       return { ticks: marks, canvasWidth: 0, projectPositions: positions }
     }
 
-    const { TICK_SPACING, TICKS_BETWEEN_PROJECTS, EDGE_TICKS } = TIMELINE
-    let x = 0
+    const { PX_PER_MONTH, EDGE_MONTHS } = TIMELINE
 
-    // Leading edge ticks
-    for (let i = 0; i < EDGE_TICKS; i++) {
-      marks.push({ x, isProject: false })
-      x += TICK_SPACING
+    const firstDate = new Date(sorted[0].date)
+    const lastDate = new Date(sorted[sorted.length - 1].date)
+
+    // Timeline starts EDGE_MONTHS before the first project
+    const startDate = new Date(firstDate.getFullYear(), firstDate.getMonth() - EDGE_MONTHS, 1)
+    // Timeline ends EDGE_MONTHS after the last project
+    const endDate = new Date(lastDate.getFullYear(), lastDate.getMonth() + EDGE_MONTHS, 1)
+
+    const totalMonths = monthsBetween(startDate, endDate)
+
+    // First pass: place all project markers and record their x positions
+    const projectXPositions: number[] = []
+    for (let m = 0; m <= totalMonths; m++) {
+      const tickDate = new Date(startDate.getFullYear(), startDate.getMonth() + m, 1)
+      const x = m * PX_PER_MONTH
+
+      for (let pi = 0; pi < sorted.length; pi++) {
+        const project = sorted[pi]
+        const projDate = new Date(project.date)
+        if (
+          projDate.getFullYear() === tickDate.getFullYear() &&
+          projDate.getMonth() === tickDate.getMonth() &&
+          !positions.has(project.id)
+        ) {
+          const projectX = Math.round(x / PX_PER_MONTH) * PX_PER_MONTH
+          marks.push({ x: projectX, isProject: true, project, projectIndex: pi })
+          positions.set(project.id, projectX)
+          projectXPositions.push(projectX)
+        }
+      }
     }
 
-    // For each project, place a major tick, then minor ticks after it
-    sorted.forEach((project, i) => {
-      marks.push({ x, isProject: true, project, projectIndex: i })
-      positions.set(project.id, x)
-
-      // Minor ticks after this project (except after the last one — those are edge ticks)
-      const fillCount = i < sorted.length - 1 ? TICKS_BETWEEN_PROJECTS : EDGE_TICKS
-      for (let t = 0; t < fillCount; t++) {
-        x += TICK_SPACING
+    // Second pass: place month ticks, skipping any that are too close to a project marker
+    for (let m = 0; m <= totalMonths; m++) {
+      const x = m * PX_PER_MONTH
+      const tooClose = projectXPositions.some((px) => Math.abs(px - x) < PX_PER_MONTH * 0.8)
+      if (!tooClose) {
         marks.push({ x, isProject: false })
       }
-    })
+    }
 
-    return { ticks: marks, canvasWidth: x, projectPositions: positions }
+    // Sort all marks by x position
+    marks.sort((a, b) => a.x - b.x)
+
+    const width = totalMonths * PX_PER_MONTH
+    return { ticks: marks, canvasWidth: width, projectPositions: positions }
   }, [sorted])
 
   return { sorted, ticks, canvasWidth, projectPositions }
