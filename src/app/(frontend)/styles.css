@@ -178,11 +178,14 @@ svg {
   width: 1px;
   height: 28px;
   background: rgba(255, 255, 255, 0.45);
-  transition: background 0.15s ease;
+  transition:
+    background 0.15s ease,
+    height 0.15s ease;
 }
 
 .timeline-marker[data-selected] {
   background: #00f1a2;
+  height: 36px;
 }
 
 /* Label floats above the selected marker */

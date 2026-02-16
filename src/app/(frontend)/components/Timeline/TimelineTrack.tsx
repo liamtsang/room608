@@ -118,6 +118,26 @@ export const TimelineTrack = forwardRef<TimelineTrackHandle, TimelineTrackProps>
       [x, getNearestSnapPoint, onNearestProject],
     )
 
+    const handleWheel = useCallback(
+      (e: React.WheelEvent) => {
+        e.preventDefault()
+        const currentX = x.get()
+        const current = getNearestSnapPoint(currentX)
+        if (!current) return
+
+        const currentIdx = snapPoints.indexOf(current)
+        // Scroll down / right → next project (lower snapX), scroll up / left → previous
+        const delta = e.deltaY !== 0 ? e.deltaY : e.deltaX
+        const nextIdx =
+          delta > 0 ? Math.min(currentIdx + 1, snapPoints.length - 1) : Math.max(currentIdx - 1, 0)
+
+        const target = snapPoints[nextIdx]
+        onNearestProject(target.id)
+        animate(x, target.snapX, { type: 'spring', stiffness: 300, damping: 30 })
+      },
+      [x, snapPoints, getNearestSnapPoint, onNearestProject],
+    )
+
     useImperativeHandle(ref, () => ({ scrollToX: snapTo }))
 
     return (
@@ -131,6 +151,7 @@ export const TimelineTrack = forwardRef<TimelineTrackHandle, TimelineTrackProps>
         dragMomentum={false}
         onDrag={handleDrag}
         onDragEnd={handleDragEnd}
+        onWheel={handleWheel}
       >
         {ticks.map((tick, i) => (
           <div
