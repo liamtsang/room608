@@ -3,7 +3,7 @@ import type { Project } from '@/payload-types'
 
 export const TIMELINE = {
   /** Pixels between each minor tick */
-  TICK_SPACING: 12,
+  TICK_SPACING: 8,
   /** Number of minor ticks between each project marker */
   TICKS_BETWEEN_PROJECTS: 8,
   /** Height of a project (major) tick */

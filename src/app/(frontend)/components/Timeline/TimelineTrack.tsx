@@ -15,8 +15,8 @@ interface TimelineTrackProps {
   onNearestProject: (id: number) => void
 }
 
-const DIM = 0.15
-const LIT = 0.7
+const DIM = 1
+const LIT = 0.9
 
 export const TimelineTrack = forwardRef<TimelineTrackHandle, TimelineTrackProps>(
   function TimelineTrack({ canvasWidth, ticks, selectedId, onNearestProject }, ref) {

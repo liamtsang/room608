@@ -182,7 +182,7 @@ svg {
 }
 
 .timeline-marker[data-selected] {
-  background: rgba(255, 255, 255, 0.95);
+  background: #00f1a2;
 }
 
 /* Label floats above the selected marker */

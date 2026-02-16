@@ -48,6 +48,9 @@ export function Timeline({ projects, selectedId, onSelectProject }: TimelineProp
         selectedId={selectedId}
         onNearestProject={handleNearestProject}
       />
+      <div className="absolute left-[50%] -translate-x-1/2 bottom-[-12px] text-white text-[6px]">
+        ▲
+      </div>
     </div>
   )
 }
