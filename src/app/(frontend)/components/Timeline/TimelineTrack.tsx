@@ -1,7 +1,7 @@
 'use client'
 
 import { useRef, useImperativeHandle, forwardRef, useCallback, useState, useEffect } from 'react'
-import { motion, useMotionValue, useMotionValueEvent, animate } from 'motion/react'
+import { motion, useMotionValue, useMotionValueEvent, animate, type PanInfo } from 'motion/react'
 import { type TickMark } from './useTimeline'
 
 export interface TimelineTrackHandle {
@@ -23,36 +23,42 @@ export const TimelineTrack = forwardRef<TimelineTrackHandle, TimelineTrackProps>
     const x = useMotionValue(0)
     const containerRef = useRef<HTMLDivElement>(null)
     const tickRefs = useRef<(HTMLDivElement | null)[]>([])
-    const dragStartX = useRef(0)
-    const dragStartVal = useRef(0)
-    const isDragging = useRef(false)
-    const [viewportWidth, setViewportWidth] = useState(
-      typeof window !== 'undefined' ? window.innerWidth : 1024,
-    )
-
-    useEffect(() => {
-      const update = () => setViewportWidth(window.innerWidth)
-      window.addEventListener('resize', update)
-      return () => window.removeEventListener('resize', update)
-    }, [])
 
     const canvasCenter = canvasWidth / 2
-    const maxDrag = Math.max(0, (canvasWidth - viewportWidth) / 2)
 
-    const getNearestProject = useCallback(() => {
-      const centerInCanvas = canvasCenter - x.get()
-      let closest: { id: number; x: number; dist: number } | null = null
+    // Snap points: the x value that centers each project marker on screen.
+    // At x=0 the track is CSS-centered (margin: 0 auto), so canvasCenter
+    // aligns with the viewport center. To center a tick at tickX we need
+    // x = canvasCenter - tickX.
+    const snapPoints = ticks
+      .filter((t) => t.isProject && t.project)
+      .map((t) => ({
+        id: t.project!.id,
+        tickX: t.x,
+        snapX: canvasCenter - t.x,
+      }))
 
-      for (const tick of ticks) {
-        if (!tick.isProject || !tick.project) continue
-        const dist = Math.abs(tick.x - centerInCanvas)
-        if (!closest || dist < closest.dist) {
-          closest = { id: tick.project.id, x: tick.x, dist }
+    // Derive drag bounds from the outermost snap points
+    const minSnap = snapPoints.length ? Math.min(...snapPoints.map((s) => s.snapX)) : 0
+    const maxSnap = snapPoints.length ? Math.max(...snapPoints.map((s) => s.snapX)) : 0
+
+    const getNearestSnapPoint = useCallback(
+      (currentX: number) => {
+        let closest = snapPoints[0]
+        let closestDist = Infinity
+
+        for (const pt of snapPoints) {
+          const dist = Math.abs(pt.snapX - currentX)
+          if (dist < closestDist) {
+            closestDist = dist
+            closest = pt
+          }
         }
-      }
 
-      return closest
-    }, [ticks, x, canvasCenter])
+        return closest
+      },
+      [snapPoints],
+    )
 
     const updateGlow = useCallback(() => {
       const centerInCanvas = canvasCenter - x.get()
@@ -75,12 +81,7 @@ export const TimelineTrack = forwardRef<TimelineTrackHandle, TimelineTrackProps>
       }
     }, [ticks, canvasCenter, x])
 
-    useMotionValueEvent(x, 'change', () => {
-      updateGlow()
-      if (!isDragging.current) return
-      const nearest = getNearestProject()
-      if (nearest) onNearestProject(nearest.id)
-    })
+    useMotionValueEvent(x, 'change', updateGlow)
 
     useEffect(() => {
       updateGlow()
@@ -89,43 +90,33 @@ export const TimelineTrack = forwardRef<TimelineTrackHandle, TimelineTrackProps>
     const snapTo = useCallback(
       (targetX: number) => {
         const dest = canvasCenter - targetX
-        const clamped = Math.max(-maxDrag, Math.min(maxDrag, dest))
-        animate(x, clamped, { type: 'spring', stiffness: 300, damping: 30 })
+        animate(x, dest, { type: 'spring', stiffness: 300, damping: 30 })
       },
-      [canvasCenter, maxDrag, x],
+      [canvasCenter, x],
     )
 
-    // Pointer-based drag — full control, no motion.dev drag reset
-    const handlePointerDown = useCallback(
-      (e: React.PointerEvent) => {
-        isDragging.current = true
-        dragStartX.current = e.clientX
-        dragStartVal.current = x.get()
-        ;(e.target as HTMLElement).setPointerCapture(e.pointerId)
-      },
-      [x],
-    )
+    const handleDrag = useCallback(() => {
+      const nearest = getNearestSnapPoint(x.get())
+      if (nearest) onNearestProject(nearest.id)
+    }, [x, getNearestSnapPoint, onNearestProject])
 
-    const handlePointerMove = useCallback(
-      (e: React.PointerEvent) => {
-        if (!isDragging.current) return
-        const delta = e.clientX - dragStartX.current
-        const next = dragStartVal.current + delta
-        const clamped = Math.max(-maxDrag, Math.min(maxDrag, next))
-        x.set(clamped)
+    const handleDragEnd = useCallback(
+      (_: unknown, info: PanInfo) => {
+        // Factor in velocity so the snap feels natural with momentum
+        const projected = x.get() + info.velocity.x * 0.2
+        const nearest = getNearestSnapPoint(projected)
+        if (nearest) {
+          onNearestProject(nearest.id)
+          animate(x, nearest.snapX, {
+            type: 'spring',
+            velocity: info.velocity.x,
+            stiffness: 300,
+            damping: 30,
+          })
+        }
       },
-      [x, maxDrag],
+      [x, getNearestSnapPoint, onNearestProject],
     )
-
-    const handlePointerUp = useCallback(() => {
-      if (!isDragging.current) return
-      isDragging.current = false
-      const nearest = getNearestProject()
-      if (nearest) {
-        onNearestProject(nearest.id)
-        snapTo(nearest.x)
-      }
-    }, [getNearestProject, onNearestProject, snapTo])
 
     useImperativeHandle(ref, () => ({ scrollToX: snapTo }))
 
@@ -135,9 +126,11 @@ export const TimelineTrack = forwardRef<TimelineTrackHandle, TimelineTrackProps>
         className="timeline-track"
         style={{ width: canvasWidth, x, cursor: 'grab' }}
         drag="x"
-        dragDirectionLock
-        dragConstraints={{ right: canvasWidth / 2, left: (canvasWidth / 2) * -1 }}
+        dragConstraints={{ left: minSnap, right: maxSnap }}
+        dragElastic={0.2}
         dragMomentum={false}
+        onDrag={handleDrag}
+        onDragEnd={handleDragEnd}
       >
         {ticks.map((tick, i) => (
           <div
