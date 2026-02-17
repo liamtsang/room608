@@ -15,14 +15,42 @@ interface TimelineTrackProps {
   onNearestProject: (id: number) => void
 }
 
-const DIM = 1
-const LIT = 0.9
+const TICK_OPACITY = 0.4
+
+let audioCtx: AudioContext | null = null
+function playTick(isProject: boolean) {
+  if (!audioCtx) audioCtx = new AudioContext()
+  if (audioCtx.state === 'suspended') {
+    audioCtx.resume()
+    return
+  }
+  const now = audioCtx.currentTime
+  const osc = audioCtx.createOscillator()
+  const osc2 = audioCtx.createOscillator()
+  const gain = audioCtx.createGain()
+  osc.type = 'triangle'
+  osc2.type = 'sine'
+  osc.connect(gain)
+  osc2.connect(gain)
+  gain.connect(audioCtx.destination)
+  osc.frequency.value = isProject ? 600 : 440
+  osc2.frequency.value = isProject ? 600 : 440
+  osc.detune.setValueAtTime(20, now)
+  osc2.detune.setValueAtTime(0, now)
+  const vol = isProject ? 0.06 : 0.03
+  gain.gain.setValueAtTime(0.001, now)
+  gain.gain.linearRampToValueAtTime(vol, now + 0.005)
+  gain.gain.exponentialRampToValueAtTime(0.001, now + 0.04)
+  osc.start(now)
+  osc.stop(now + 0.05)
+}
 
 export const TimelineTrack = forwardRef<TimelineTrackHandle, TimelineTrackProps>(
   function TimelineTrack({ canvasWidth, ticks, selectedId, onNearestProject }, ref) {
     const x = useMotionValue(0)
     const containerRef = useRef<HTMLDivElement>(null)
     const tickRefs = useRef<(HTMLDivElement | null)[]>([])
+    const lastCenterIdx = useRef(-1)
     const [wrapperWidth, setWrapperWidth] = useState(0)
 
     useEffect(() => {
@@ -85,10 +113,18 @@ export const TimelineTrack = forwardRef<TimelineTrackHandle, TimelineTrackProps>
         }
       }
 
+      // Play sound when center tick changes
+      if (closestIdx !== lastCenterIdx.current) {
+        if (lastCenterIdx.current !== -1) {
+          playTick(ticks[closestIdx].isProject)
+        }
+        lastCenterIdx.current = closestIdx
+      }
+
       for (let i = 0; i < ticks.length; i++) {
         const el = tickRefs.current[i]
         if (!el) continue
-        el.style.opacity = String(i === closestIdx ? LIT : DIM)
+        el.style.opacity = String(i === closestIdx ? '1' : TICK_OPACITY)
       }
     }, [ticks, canvasCenter, x])
 
