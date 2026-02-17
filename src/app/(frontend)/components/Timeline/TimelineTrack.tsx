@@ -23,13 +23,24 @@ export const TimelineTrack = forwardRef<TimelineTrackHandle, TimelineTrackProps>
     const x = useMotionValue(0)
     const containerRef = useRef<HTMLDivElement>(null)
     const tickRefs = useRef<(HTMLDivElement | null)[]>([])
+    const [wrapperWidth, setWrapperWidth] = useState(0)
 
+    useEffect(() => {
+      const wrapper = containerRef.current?.parentElement
+      if (!wrapper) return
+      const measure = () => setWrapperWidth(wrapper.clientWidth)
+      measure()
+      const ro = new ResizeObserver(measure)
+      ro.observe(wrapper)
+      return () => ro.disconnect()
+    }, [])
+
+    // At x=0, offset the track so its center aligns with the wrapper center
+    const offset = (wrapperWidth - canvasWidth) / 2
+
+    // Snap points: the x value that centers each project marker in the wrapper.
+    // At x=0 with the offset, canvasCenter aligns with wrapperCenter.
     const canvasCenter = canvasWidth / 2
-
-    // Snap points: the x value that centers each project marker on screen.
-    // At x=0 the track is CSS-centered (margin: 0 auto), so canvasCenter
-    // aligns with the viewport center. To center a tick at tickX we need
-    // x = canvasCenter - tickX.
     const snapPoints = ticks
       .filter((t) => t.isProject && t.project)
       .map((t) => ({
@@ -144,7 +155,7 @@ export const TimelineTrack = forwardRef<TimelineTrackHandle, TimelineTrackProps>
       <motion.div
         ref={containerRef}
         className="timeline-track"
-        style={{ width: canvasWidth, x, cursor: 'grab' }}
+        style={{ width: canvasWidth, x, marginLeft: offset, cursor: 'grab' }}
         drag="x"
         dragConstraints={{ left: minSnap, right: maxSnap }}
         dragElastic={0.2}
