@@ -41,13 +41,17 @@ export function Timeline({ projects, selectedId, onSelectProject }: TimelineProp
 
   return (
     <div className="timeline" aria-label="Project timeline">
-      <TimelineTrack
-        ref={trackRef}
-        canvasWidth={canvasWidth}
-        ticks={ticks}
-        selectedId={selectedId}
-        onNearestProject={handleNearestProject}
-      />
+      <div id="timeline-track-blur" />
+      <div id="timeline-track-wrapper">
+        <TimelineTrack
+          ref={trackRef}
+          canvasWidth={canvasWidth}
+          ticks={ticks}
+          selectedId={selectedId}
+          onNearestProject={handleNearestProject}
+        />{' '}
+      </div>
+
       <div className="absolute left-[50%] -translate-x-1/2 bottom-[-12px] text-white text-[6px]">
         ▲
       </div>

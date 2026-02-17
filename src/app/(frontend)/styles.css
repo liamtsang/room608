@@ -147,7 +147,7 @@ svg {
   left: 0;
   right: 0;
   height: 56px;
-  background: rgba(0, 0, 0, 0.75);
+  background: #323232;
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   z-index: 100;
@@ -162,13 +162,44 @@ svg {
   margin: 0 auto;
 }
 
+#timeline-track-blur {
+  width: 20rem;
+  height: 100%;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  overflow: hidden;
+  background: #323232;
+  background: linear-gradient(
+    90deg,
+    rgba(50, 50, 50, 1) 0%,
+    rgba(50, 50, 50, 0.8) 4%,
+    rgba(0, 0, 0, 0) 8%,
+    rgba(0, 0, 0, 0) 50%,
+    rgba(0, 0, 0, 0) 92%,
+    rgba(50, 50, 50, 0.83) 96%,
+    rgba(50, 50, 50, 1) 100%
+  );
+  z-index: 999;
+  pointer-events: none;
+}
+
+#timeline-track-wrapper {
+  width: 20rem;
+  height: 100%;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  overflow: hidden;
+}
+
 /* Minor ticks — short, evenly spaced */
 .timeline-tick {
   position: absolute;
   bottom: 12px;
   width: 1px;
   height: 12px;
-  background: rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.8);
 }
 
 /* Major ticks — project markers, taller */
@@ -177,7 +208,7 @@ svg {
   bottom: 12px;
   width: 1px;
   height: 28px;
-  background: rgba(255, 255, 255, 0.45);
+  background: rgba(255, 255, 255, 0.8);
   transition:
     background 0.15s ease,
     height 0.15s ease;
