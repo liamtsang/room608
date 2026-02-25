@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo, useRef, useCallback } from 'react'
-import { motion } from 'motion/react'
+import { motion, AnimatePresence } from 'motion/react'
 import { RichText } from '@payloadcms/richtext-lexical/react'
 import type { Media, Project } from '@/payload-types'
 import { Timeline } from './components/Timeline/Timeline'
@@ -12,10 +12,19 @@ interface Position {
   rotate: number
 }
 
-function randomPositions(count: number): Position[] {
+function seededRandom(seed: number) {
+  let s = seed
+  return () => {
+    s = (s * 16807 + 0) % 2147483647
+    return (s - 1) / 2147483646
+  }
+}
+
+function randomPositions(count: number, seed: number): Position[] {
+  const rand = seededRandom(seed)
   return Array.from({ length: count }, () => ({
-    x: Math.random() * 60 + 5,
-    y: Math.random() * 60 + 5,
+    x: rand() * 60 + 5,
+    y: rand() * 60 + 5,
     rotate: 0,
   }))
 }
@@ -49,10 +58,15 @@ function FloatingUnit({
         scale: 1,
         opacity: 1,
       }}
+      exit={{
+        scale: 0.98,
+        opacity: 0,
+      }}
       transition={{
         type: 'spring',
-        stiffness: 300,
+        stiffness: 500,
         damping: 25,
+        bounce: 0.1,
         delay: index * 0.05,
       }}
       whileDrag={{ scale: 1.03, cursor: 'grabbing' }}
@@ -77,7 +91,10 @@ export function Workspace({ projects }: { projects: Project[] }) {
   )
 
   const unitCount = (selected?.description ? 1 : 0) + images.length
-  const positions = useMemo(() => randomPositions(unitCount), [selected?.id, unitCount])
+  const positions = useMemo(
+    () => randomPositions(unitCount, selected?.id ?? 1),
+    [selected?.id, unitCount],
+  )
 
   const bringToFront = useCallback((key: string) => {
     const next = ++zCounter.current
@@ -88,65 +105,67 @@ export function Workspace({ projects }: { projects: Project[] }) {
     <div className="h-screen pb-16">
       {/* Workspace */}
       <div className="relative h-full overflow-hidden">
-        {selected ? (
-          <>
-            {/* Title bar */}
-            <div className="absolute top-0 left-0 right-0 p-6 z-50 pointer-events-none">
-              <h1 className="text-2xl font-bold">{selected.title}</h1>
-              <p className="text-sm opacity-50">
-                {new Date(selected.date).toLocaleDateString('en-US', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                })}
-              </p>
-            </div>
+        <AnimatePresence mode="popLayout">
+          {selected ? (
+            <div key={selected.id} className="contents">
+              {/* Title bar */}
+              {/*<div className="absolute top-0 left-0 right-0 p-6 z-50 pointer-events-none">
+                <h1 className="text-2xl font-bold">{selected.title}</h1>
+                <p className="text-sm opacity-50">
+                  {new Date(selected.date).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                  })}
+                </p>
+              </div>*/}
 
-            {/* Floating units */}
-            {selected.description && (
-              <FloatingUnit
-                key={`desc-${selected.id}`}
-                position={positions[0]}
-                index={0}
-                zIndex={zIndices[`desc-${selected.id}`] ?? 1}
-                onFocus={() => bringToFront(`desc-${selected.id}`)}
-              >
-                <div className="bg-[#C6B79C] outline-1 outline-color-[#515151] drop-shadow-md">
-                  <RichText data={selected.description} />
-                </div>
-              </FloatingUnit>
-            )}
-
-            {images.map((img, i) => {
-              const posIndex = selected.description ? i + 1 : i
-              const key = `img-${img.id}`
-              return (
+              {/* Floating units */}
+              {selected.description && (
                 <FloatingUnit
-                  key={key}
-                  position={positions[posIndex]}
-                  index={posIndex}
-                  zIndex={zIndices[key] ?? 1}
-                  onFocus={() => bringToFront(key)}
+                  key={`desc-${selected.id}`}
+                  position={positions[0]}
+                  index={0}
+                  zIndex={zIndices[`desc-${selected.id}`] ?? 1}
+                  onFocus={() => bringToFront(`desc-${selected.id}`)}
                 >
-                  <div className="overflow-hidden border border-white outline-2 outline-black">
-                    {img.url && (
-                      <img
-                        src={img.url}
-                        alt={img.alt}
-                        draggable={false}
-                        className="max-h-80 max-w-lg object-contain select-none"
-                      />
-                    )}
+                  <div className="bg-[#C6B79C] outline-1 outline-color-[#515151] drop-shadow-md">
+                    <RichText data={selected.description} />
                   </div>
                 </FloatingUnit>
-              )
-            })}
-          </>
-        ) : (
-          <div className="flex h-full items-center justify-center opacity-40">
-            <p>No projects to display.</p>
-          </div>
-        )}
+              )}
+
+              {images.map((img, i) => {
+                const posIndex = selected.description ? i + 1 : i
+                const key = `img-${img.id}`
+                return (
+                  <FloatingUnit
+                    key={key}
+                    position={positions[posIndex]}
+                    index={posIndex}
+                    zIndex={zIndices[key] ?? 1}
+                    onFocus={() => bringToFront(key)}
+                  >
+                    <div className="overflow-hidden border border-white outline-2 outline-black">
+                      {img.url && (
+                        <img
+                          src={img.url}
+                          alt={img.alt}
+                          draggable={false}
+                          className="max-h-80 max-w-lg object-contain select-none"
+                        />
+                      )}
+                    </div>
+                  </FloatingUnit>
+                )
+              })}
+            </div>
+          ) : (
+            <div className="flex h-full items-center justify-center opacity-40">
+              <p>No projects to display.</p>
+            </div>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* Timeline */}

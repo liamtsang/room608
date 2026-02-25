@@ -146,7 +146,7 @@ svg {
   bottom: 0;
   left: 0;
   right: 0;
-  height: 56px;
+  height: 96px;
   background: #323232;
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
@@ -154,6 +154,7 @@ svg {
   overflow: hidden;
   cursor: grab;
   user-select: none;
+  border-top: 1px solid #868686;
 }
 
 .timeline-track {

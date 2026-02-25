@@ -15,7 +15,7 @@ interface TimelineTrackProps {
   onNearestProject: (id: number) => void
 }
 
-const TICK_OPACITY = 0.4
+const TICK_OPACITY = 0.5
 
 let audioCtx: AudioContext | null = null
 function playTick(isProject: boolean) {
@@ -40,7 +40,7 @@ function playTick(isProject: boolean) {
   const vol = isProject ? 0.06 : 0.03
   gain.gain.setValueAtTime(0.001, now)
   gain.gain.linearRampToValueAtTime(vol, now + 0.005)
-  gain.gain.exponentialRampToValueAtTime(0.001, now + 0.04)
+  gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08)
   osc.start(now)
   osc.stop(now + 0.05)
 }
