@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo, useRef, useCallback } from 'react'
+import { useState, useMemo, useRef, useCallback, useEffect } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import { RichText } from '@payloadcms/richtext-lexical/react'
 import type { Media, Project } from '@/payload-types'
@@ -12,6 +12,11 @@ interface Position {
   rotate: number
 }
 
+interface ItemSize {
+  w: number
+  h: number
+}
+
 function seededRandom(seed: number) {
   let s = seed
   return () => {
@@ -20,11 +25,104 @@ function seededRandom(seed: number) {
   }
 }
 
-function randomPositions(count: number, seed: number): Position[] {
+function estimateImageSize(media: Media): ItemSize {
+  const maxW = 512,
+    maxH = 320
+  const w = media.width ?? maxW
+  const h = media.height ?? maxH
+  const scale = Math.min(maxW / w, maxH / h, 1)
+  return { w: Math.round(w * scale) + 6, h: Math.round(h * scale) + 6 }
+}
+
+function extractTextFromLexical(node: unknown): string {
+  if (!node || typeof node !== 'object') return ''
+  const n = node as Record<string, unknown>
+  if (typeof n.text === 'string') return n.text
+  if (Array.isArray(n.children)) return n.children.map(extractTextFromLexical).join('')
+  if (n.root && typeof n.root === 'object') return extractTextFromLexical(n.root)
+  return ''
+}
+
+function estimateDescriptionSize(description: Project['description']): ItemSize {
+  if (!description) return { w: 200, h: 64 }
+  const text = extractTextFromLexical(description)
+  const chWidth = 10.8
+  const lineHeight = 32
+  const maxChars = 55
+  const lines = Math.max(1, Math.ceil(text.length / maxChars))
+  const w = Math.min(text.length, maxChars) * chWidth + 16
+  const h = lines * lineHeight + 16
+  return { w: Math.round(w), h: Math.round(h) }
+}
+
+function forcePlacement(items: ItemSize[], seed: number, vw: number, vh: number): Position[] {
+  if (items.length === 0) return []
+
   const rand = seededRandom(seed)
-  return Array.from({ length: count }, () => ({
-    x: rand() * 60 + 5,
-    y: rand() * 60 + 5,
+  const padding = 24
+  const iterations = 100
+  const damping = 0.7
+
+  const bodies = items.map((item) => ({
+    x: rand() * (vw - item.w - padding * 2) + padding,
+    y: rand() * (vh - item.h - padding * 2) + padding,
+    w: item.w,
+    h: item.h,
+    vx: 0,
+    vy: 0,
+  }))
+
+  for (let iter = 0; iter < iterations; iter++) {
+    const forces = bodies.map(() => ({ fx: 0, fy: 0 }))
+
+    for (let i = 0; i < bodies.length; i++) {
+      for (let j = i + 1; j < bodies.length; j++) {
+        const a = bodies[i],
+          b = bodies[j]
+        const acx = a.x + a.w / 2,
+          acy = a.y + a.h / 2
+        const bcx = b.x + b.w / 2,
+          bcy = b.y + b.h / 2
+        const overlapX = (a.w + b.w) / 2 + padding - Math.abs(acx - bcx)
+        const overlapY = (a.h + b.h) / 2 + padding - Math.abs(acy - bcy)
+
+        if (overlapX > 0 && overlapY > 0) {
+          const dx = acx - bcx || 0.1
+          const dy = acy - bcy || 0.1
+
+          if (overlapX < overlapY) {
+            const push = Math.sign(dx) * overlapX * 0.5
+            forces[i].fx += push
+            forces[j].fx -= push
+          } else {
+            const push = Math.sign(dy) * overlapY * 0.5
+            forces[i].fy += push
+            forces[j].fy -= push
+          }
+        }
+      }
+    }
+
+    for (let i = 0; i < bodies.length; i++) {
+      const b = bodies[i]
+      const margin = padding
+      if (b.x < margin) forces[i].fx += (margin - b.x) * 0.4
+      if (b.y < margin) forces[i].fy += (margin - b.y) * 0.4
+      if (b.x + b.w > vw - margin) forces[i].fx -= (b.x + b.w - vw + margin) * 0.4
+      if (b.y + b.h > vh - margin) forces[i].fy -= (b.y + b.h - vh + margin) * 0.4
+    }
+
+    for (let i = 0; i < bodies.length; i++) {
+      bodies[i].vx = (bodies[i].vx + forces[i].fx) * damping
+      bodies[i].vy = (bodies[i].vy + forces[i].fy) * damping
+      bodies[i].x += bodies[i].vx
+      bodies[i].y += bodies[i].vy
+    }
+  }
+
+  return bodies.map((b) => ({
+    x: Math.max(0, Math.min((b.x / vw) * 100, ((vw - b.w) / vw) * 100)),
+    y: Math.max(0, Math.min((b.y / vh) * 100, ((vh - b.h) / vh) * 100)),
     rotate: 0,
   }))
 }
@@ -50,7 +148,7 @@ function FloatingUnit({
       initial={{
         left: `${position.x}%`,
         top: `${position.y}%`,
-        rotate: position.rotate,
+        rotate: 0,
         scale: 0.9,
         opacity: 0,
       }}
@@ -82,6 +180,18 @@ export function Workspace({ projects }: { projects: Project[] }) {
   const [selectedId, setSelectedId] = useState<number | null>(projects[0]?.id ?? null)
   const zCounter = useRef(1)
   const [zIndices, setZIndices] = useState<Record<string, number>>({})
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [viewport, setViewport] = useState<{ w: number; h: number } | null>(null)
+
+  useEffect(() => {
+    const el = containerRef.current
+    if (!el) return
+    const update = () => setViewport({ w: el.clientWidth, h: el.clientHeight })
+    update()
+    const ro = new ResizeObserver(update)
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
 
   const selected = projects.find((p) => p.id === selectedId) ?? null
 
@@ -90,11 +200,13 @@ export function Workspace({ projects }: { projects: Project[] }) {
     [selected],
   )
 
-  const unitCount = (selected?.description ? 1 : 0) + images.length
-  const positions = useMemo(
-    () => randomPositions(unitCount, selected?.id ?? 1),
-    [selected?.id, unitCount],
-  )
+  const positions = useMemo(() => {
+    if (!viewport || !selected) return []
+    const items: ItemSize[] = []
+    if (selected.description) items.push(estimateDescriptionSize(selected.description))
+    for (const img of images) items.push(estimateImageSize(img))
+    return forcePlacement(items, selected.id, viewport.w, viewport.h)
+  }, [selected?.id, images, viewport, selected?.description])
 
   const bringToFront = useCallback((key: string) => {
     const next = ++zCounter.current
@@ -104,22 +216,10 @@ export function Workspace({ projects }: { projects: Project[] }) {
   return (
     <div className="h-screen pb-16">
       {/* Workspace */}
-      <div className="relative h-full overflow-hidden">
+      <div ref={containerRef} className="relative h-full overflow-hidden">
         <AnimatePresence mode="popLayout">
-          {selected ? (
+          {selected && positions.length > 0 ? (
             <div key={selected.id} className="contents">
-              {/* Title bar */}
-              {/*<div className="absolute top-0 left-0 right-0 p-6 z-50 pointer-events-none">
-                <h1 className="text-2xl font-bold">{selected.title}</h1>
-                <p className="text-sm opacity-50">
-                  {new Date(selected.date).toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                  })}
-                </p>
-              </div>*/}
-
               {/* Floating units */}
               {selected.description && (
                 <FloatingUnit
