@@ -14,7 +14,7 @@ export default function Nav() {
   const pathname = usePathname()
 
   return (
-    <nav className="flex flex-col gap-4 p-8 absolute">
+    <nav className="flex flex-col gap-4 p-8 absolute isolate z-10">
       <Image
         src="/logo hd.png"
         alt="room608 logo"

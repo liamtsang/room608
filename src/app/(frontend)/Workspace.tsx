@@ -10,6 +10,8 @@ interface Position {
   x: number
   y: number
   rotate: number
+  tx: number
+  ty: number
 }
 
 interface ItemSize {
@@ -55,76 +57,29 @@ function estimateDescriptionSize(description: Project['description']): ItemSize 
   return { w: Math.round(w), h: Math.round(h) }
 }
 
-function forcePlacement(items: ItemSize[], seed: number, vw: number, vh: number): Position[] {
+function forcePlacement(items: ItemSize[], seed: number): Position[] {
   if (items.length === 0) return []
 
   const rand = seededRandom(seed)
-  const padding = 24
-  const iterations = 100
-  const damping = 0.7
+  const noise = 30
 
-  const bodies = items.map((item) => ({
-    x: rand() * (vw - item.w - padding * 2) + padding,
-    y: rand() * (vh - item.h - padding * 2) + padding,
-    w: item.w,
-    h: item.h,
-    vx: 0,
-    vy: 0,
-  }))
+  const dirs = [
+    { dx: -1, dy: -1 }, // top-left
+    { dx: 1, dy: -1 }, // top-right
+    { dx: -1, dy: 1 }, // bottom-left
+    { dx: 1, dy: 1 }, // bottom-right
+  ]
 
-  for (let iter = 0; iter < iterations; iter++) {
-    const forces = bodies.map(() => ({ fx: 0, fy: 0 }))
+  return items.map((item, i) => {
+    const qi = i % dirs.length
+    const d = dirs[qi]
+    // Translate by the item's full size + gap so adjacent quadrants don't overlap
+    const gap = 16
+    const tx = d.dx * (item.w * 0.75 + gap + rand() * noise)
+    const ty = d.dy * (item.h * 0.75 + gap + rand() * noise)
 
-    for (let i = 0; i < bodies.length; i++) {
-      for (let j = i + 1; j < bodies.length; j++) {
-        const a = bodies[i],
-          b = bodies[j]
-        const acx = a.x + a.w / 2,
-          acy = a.y + a.h / 2
-        const bcx = b.x + b.w / 2,
-          bcy = b.y + b.h / 2
-        const overlapX = (a.w + b.w) / 2 + padding - Math.abs(acx - bcx)
-        const overlapY = (a.h + b.h) / 2 + padding - Math.abs(acy - bcy)
-
-        if (overlapX > 0 && overlapY > 0) {
-          const dx = acx - bcx || 0.1
-          const dy = acy - bcy || 0.1
-
-          if (overlapX < overlapY) {
-            const push = Math.sign(dx) * overlapX * 0.5
-            forces[i].fx += push
-            forces[j].fx -= push
-          } else {
-            const push = Math.sign(dy) * overlapY * 0.5
-            forces[i].fy += push
-            forces[j].fy -= push
-          }
-        }
-      }
-    }
-
-    for (let i = 0; i < bodies.length; i++) {
-      const b = bodies[i]
-      const margin = padding
-      if (b.x < margin) forces[i].fx += (margin - b.x) * 0.4
-      if (b.y < margin) forces[i].fy += (margin - b.y) * 0.4
-      if (b.x + b.w > vw - margin) forces[i].fx -= (b.x + b.w - vw + margin) * 0.4
-      if (b.y + b.h > vh - margin) forces[i].fy -= (b.y + b.h - vh + margin) * 0.4
-    }
-
-    for (let i = 0; i < bodies.length; i++) {
-      bodies[i].vx = (bodies[i].vx + forces[i].fx) * damping
-      bodies[i].vy = (bodies[i].vy + forces[i].fy) * damping
-      bodies[i].x += bodies[i].vx
-      bodies[i].y += bodies[i].vy
-    }
-  }
-
-  return bodies.map((b) => ({
-    x: Math.max(0, Math.min((b.x / vw) * 100, ((vw - b.w) / vw) * 100)),
-    y: Math.max(0, Math.min((b.y / vh) * 100, ((vh - b.h) / vh) * 100)),
-    rotate: 0,
-  }))
+    return { x: 50, y: 50, rotate: 0, tx, ty }
+  })
 }
 
 function FloatingUnit({
@@ -146,9 +101,6 @@ function FloatingUnit({
       dragMomentum={false}
       dragElastic={0}
       initial={{
-        left: `${position.x}%`,
-        top: `${position.y}%`,
-        rotate: 0,
         scale: 0.9,
         opacity: 0,
       }}
@@ -169,7 +121,14 @@ function FloatingUnit({
       }}
       whileDrag={{ scale: 1.03, cursor: 'grabbing' }}
       onPointerDown={onFocus}
-      style={{ position: 'absolute', zIndex, cursor: 'grab' }}
+      style={{
+        position: 'absolute',
+        left: `${position.x}%`,
+        top: `${position.y}%`,
+        translate: `calc(-50% + ${position.tx}px) calc(-50% + ${position.ty}px)`,
+        zIndex,
+        cursor: 'grab',
+      }}
     >
       {children}
     </motion.div>
@@ -235,7 +194,7 @@ export function Workspace({ projects }: { projects: Project[] }) {
     const items: ItemSize[] = []
     if (selected.description) items.push(estimateDescriptionSize(selected.description))
     for (const img of images) items.push(estimateImageSize(img))
-    return forcePlacement(items, selected.id, viewport.w, viewport.h)
+    return forcePlacement(items, selected.id)
   }, [selected?.id, images, viewport, selected?.description])
 
   const bringToFront = useCallback((key: string) => {
