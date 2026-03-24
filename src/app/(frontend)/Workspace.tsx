@@ -75,8 +75,8 @@ function forcePlacement(items: ItemSize[], seed: number): Position[] {
     const d = dirs[qi]
     // Translate by the item's full size + gap so adjacent quadrants don't overlap
     const gap = 16
-    const tx = d.dx * (item.w * 0.75 + gap + rand() * noise)
-    const ty = d.dy * (item.h * 0.75 + gap + rand() * noise)
+    const tx = d.dx * (item.w * 0.5 + gap + rand() * noise)
+    const ty = d.dy * (item.h * 0.5 + gap + rand() * noise)
 
     return { x: 50, y: 50, rotate: 0, tx, ty }
   })
