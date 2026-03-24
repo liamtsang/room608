@@ -1,5 +1,6 @@
 import React from 'react'
 import './styles.css'
+import Nav from './components/nav'
 
 export const metadata = {
   description: 'Room 608',
@@ -21,6 +22,7 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <body>
+        <Nav />
         <main>{children}</main>
       </body>
     </html>

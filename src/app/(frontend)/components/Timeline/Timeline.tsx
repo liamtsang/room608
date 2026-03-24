@@ -10,9 +10,10 @@ interface TimelineProps {
   projects: Project[]
   selectedId: number | null
   onSelectProject: (id: number) => void
+  mobile?: boolean
 }
 
-export function Timeline({ projects, selectedId, onSelectProject }: TimelineProps) {
+export function Timeline({ projects, selectedId, onSelectProject, mobile }: TimelineProps) {
   const { canvasWidth, ticks, projectPositions } = useTimeline(projects)
   const trackRef = useRef<TimelineTrackHandle>(null)
   const hasScrolledRef = useRef(false)
@@ -40,7 +41,7 @@ export function Timeline({ projects, selectedId, onSelectProject }: TimelineProp
   )
 
   return (
-    <div className="timeline" aria-label="Project timeline">
+    <div className={`timeline ${mobile ? 'timeline-mobile' : ''}`} aria-label="Project timeline">
       <div id="timeline-track-blur" />
       <div id="timeline-track-wrapper">
         <TimelineTrack
@@ -52,9 +53,11 @@ export function Timeline({ projects, selectedId, onSelectProject }: TimelineProp
         />{' '}
       </div>
 
-      <div className="absolute left-[50%] -translate-x-1/2 bottom-[-12px] text-white text-[6px]">
-        ▲
-      </div>
+      {!mobile && (
+        <div className="absolute left-[50%] -translate-x-1/2 bottom-[-12px] text-white text-[6px]">
+          ▲
+        </div>
+      )}
     </div>
   )
 }

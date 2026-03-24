@@ -178,10 +178,40 @@ function FloatingUnit({
 
 export function Workspace({ projects }: { projects: Project[] }) {
   const [selectedId, setSelectedId] = useState<number | null>(projects[0]?.id ?? null)
+  const [direction, setDirection] = useState(0) // -1 = left, 1 = right
+  const prevSelectedId = useRef(selectedId)
+
+  const projectIndex = useMemo(() => {
+    const map = new Map<number, number>()
+    projects.forEach((p, i) => map.set(p.id, i))
+    return map
+  }, [projects])
+
+  const handleSelectProject = useCallback(
+    (id: number) => {
+      const prevIdx =
+        prevSelectedId.current != null ? (projectIndex.get(prevSelectedId.current) ?? 0) : 0
+      const nextIdx = projectIndex.get(id) ?? 0
+      setDirection(nextIdx > prevIdx ? 1 : -1)
+      prevSelectedId.current = id
+      setSelectedId(id)
+    },
+    [projectIndex],
+  )
+
   const zCounter = useRef(1)
   const [zIndices, setZIndices] = useState<Record<string, number>>({})
   const containerRef = useRef<HTMLDivElement>(null)
   const [viewport, setViewport] = useState<{ w: number; h: number } | null>(null)
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 768px)')
+    setIsMobile(mq.matches)
+    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches)
+    mq.addEventListener('change', handler)
+    return () => mq.removeEventListener('change', handler)
+  }, [])
 
   useEffect(() => {
     const el = containerRef.current
@@ -212,6 +242,88 @@ export function Workspace({ projects }: { projects: Project[] }) {
     const next = ++zCounter.current
     setZIndices((prev) => ({ ...prev, [key]: next }))
   }, [])
+
+  if (isMobile) {
+    return (
+      <div className="flex h-screen flex-col">
+        {/* Timeline at top */}
+        <Timeline
+          projects={projects}
+          selectedId={selectedId}
+          onSelectProject={handleSelectProject}
+          mobile
+        />
+
+        {/* Scrollable content */}
+        <div className="flex-1 overflow-hidden">
+          <AnimatePresence mode="popLayout" custom={direction}>
+            {selected ? (
+              <motion.div
+                key={selected.id}
+                custom={direction}
+                className="flex flex-col p-3 gap-3 h-full overflow-y-auto"
+                variants={{
+                  enter: (d: number) => ({ x: `${d * 100}%`, opacity: 0 }),
+                  center: {
+                    x: '0%',
+                    opacity: 1,
+                    transition: {
+                      type: 'spring',
+                      stiffness: 400,
+                      damping: 35,
+                      staggerChildren: 0.1,
+                    },
+                  },
+                  exit: (d: number) => ({ x: `${d * -100}%`, opacity: 0 }),
+                }}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                transition={{ type: 'spring', stiffness: 400, damping: 35 }}
+              >
+                {selected.description && (
+                  <motion.div
+                    className="bg-[#C6B79C] outline-1 outline-color-[#515151] drop-shadow-md"
+                    variants={{
+                      enter: { opacity: 0, y: 0 },
+                      center: { opacity: 1, y: 0 },
+                    }}
+                    transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                  >
+                    <RichText data={selected.description} />
+                  </motion.div>
+                )}
+
+                {images.map((img) => (
+                  <motion.div
+                    key={img.id}
+                    className="border-b border-white"
+                    variants={{
+                      enter: { opacity: 0, y: 0 },
+                      center: { opacity: 1, y: 0 },
+                    }}
+                    transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                  >
+                    {img.url && (
+                      <img
+                        src={img.url}
+                        alt={img.alt}
+                        className="w-full object-contain border border-white outline-2 outline-[#3D3D3D]"
+                      />
+                    )}
+                  </motion.div>
+                ))}
+              </motion.div>
+            ) : (
+              <div className="flex h-full items-center justify-center opacity-40">
+                <p>No projects to display.</p>
+              </div>
+            )}
+          </AnimatePresence>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="h-screen pb-16">
@@ -246,7 +358,7 @@ export function Workspace({ projects }: { projects: Project[] }) {
                     zIndex={zIndices[key] ?? 1}
                     onFocus={() => bringToFront(key)}
                   >
-                    <div className="overflow-hidden border border-white outline-2 outline-black">
+                    <div className="overflow-hidden border border-white outline-2 outline-[#3D3D3D]">
                       {img.url && (
                         <img
                           src={img.url}
@@ -269,7 +381,7 @@ export function Workspace({ projects }: { projects: Project[] }) {
       </div>
 
       {/* Timeline */}
-      <Timeline projects={projects} selectedId={selectedId} onSelectProject={setSelectedId} />
+      <Timeline projects={projects} selectedId={selectedId} onSelectProject={handleSelectProject} />
     </div>
   )
 }

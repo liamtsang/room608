@@ -91,9 +91,12 @@ h1 {
   }
 }
 
+.payload-richtext p {
+  max-width: 55ch;
+}
+
 p {
   width: fit-content;
-  max-width: 55ch;
   --cell-border: 0.5px;
   --cell-color: #c0b7a4;
   --cell-fill: #d3c8b3;
@@ -122,7 +125,7 @@ p {
 }
 
 a {
-  color: currentColor;
+  /*color: currentColor;*/
 
   &:focus {
     opacity: 0.8;
@@ -155,6 +158,15 @@ svg {
   cursor: grab;
   user-select: none;
   border-top: 1px solid #868686;
+}
+
+.timeline-mobile {
+  position: relative;
+  bottom: auto;
+  height: 84px;
+  border-top: none;
+  border-bottom: 1px solid #868686;
+  flex-shrink: 0;
 }
 
 .timeline-track {
@@ -212,6 +224,20 @@ svg {
   transition:
     background 0.15s ease,
     height 0.15s ease;
+}
+
+.timeline-mobile .timeline-tick {
+  bottom: 36px;
+}
+
+.timeline-mobile .timeline-marker {
+  bottom: auto;
+  top: 36px;
+}
+
+.timeline-mobile .timeline-marker-label {
+  bottom: auto;
+  top: calc(100% + 6px);
 }
 
 .timeline-marker[data-selected] {
