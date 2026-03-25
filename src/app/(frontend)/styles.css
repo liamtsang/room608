@@ -21,7 +21,7 @@
 }
 
 html {
-  font-size: 18px;
+  font-size: 16px;
   line-height: 32px;
 
   background: rgb(0, 0, 0);
@@ -29,7 +29,6 @@ html {
 }
 
 html,
-body,
 #app {
   height: 100%;
 }
@@ -52,7 +51,9 @@ body {
     iA Writer Mono,
     system-ui;
   font-size: 18px;
-  line-height: 32px;
+  line-height: 1.8rem;
+  height: fit-content;
+  min-height: 100%;
 
   margin: 0;
   color: #000200;

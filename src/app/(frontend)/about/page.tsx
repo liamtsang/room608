@@ -34,10 +34,7 @@ export default async function About() {
         ))}
       </div>
 
-      <div
-        style={{ lineHeight: 1.7, fontSize: '1rem' }}
-        className="bg-[#C6B79C] outline-1 outline-color-[#515151] drop-shadow-md"
-      >
+      <div className="bg-[#C6B79C] outline-1 outline-color-[#515151] drop-shadow-md">
         <p>
           Mark Mannucci and Jon Halperin have been collaborating since 2007. Jon had been a fan of
           Mark&apos;s PBS series Egg The Arts Show, so when he was tapped to EP National Geographic
@@ -50,7 +47,7 @@ export default async function About() {
           now located just north of the city on the Hudson River in a 100-year-old brewery building.
           Both offices were built around large open spaces where ideas can be exchanged freely.
         </p>
-        <p className="h-[1.7rem] min-w-[55ch]"></p>
+        <p className="min-w-[55ch]"></p>
         <p>
           To work at Room 608, one has to be creatively fearless, willing to take risks, to work
           fluidly with others — in other words you have to be smart and enjoy the process of
@@ -58,7 +55,7 @@ export default async function About() {
           teams – as gratifying as that is for them personally, the ultimate benefit is work that
           everyone can all be proud of: that is imaginative, high-quality, and profitable.
         </p>
-        <p className="h-[1.7rem] min-w-[55ch]"></p>
+        <p className="min-w-[55ch]"></p>
         <p>
           In the past eight years, Jon and Mark have made films and series for Amazon, Netflix, Vox,
           PBS, PBS Digital, ITVS, The Atlantic, The World, History, and National Geographic. Their
@@ -69,7 +66,7 @@ export default async function About() {
           feature documentary for Netflix, a feature documentary for Time, and a five-hour series
           for PBS.
         </p>
-        <p className="h-[1.7rem] min-w-[55ch]"></p>
+        <p className="min-w-[55ch]"></p>
         <p>
           Jon and Mark are interested in telling the best factual stories, in the most visually
           stimulating way they can, with the most creative and talented craftspeople in the
