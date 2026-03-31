@@ -166,6 +166,13 @@ export interface Project {
   id: number;
   title: string;
   date: string;
+  credits?:
+    | {
+        role: string;
+        name: string;
+        id?: string | null;
+      }[]
+    | null;
   description?: {
     root: {
       type: string;
@@ -308,6 +315,13 @@ export interface MediaSelect<T extends boolean = true> {
 export interface ProjectsSelect<T extends boolean = true> {
   title?: T;
   date?: T;
+  credits?:
+    | T
+    | {
+        role?: T;
+        name?: T;
+        id?: T;
+      };
   description?: T;
   images?: T;
   updatedAt?: T;

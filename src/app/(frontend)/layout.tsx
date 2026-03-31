@@ -1,6 +1,8 @@
 import React from 'react'
 import './styles.css'
 import Nav from './components/nav'
+import PageTransition from './components/PageTransition'
+import { RoomProvider } from './components/RoomContext'
 
 export const metadata = {
   description: 'Room 608',
@@ -22,8 +24,12 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <body>
-        <Nav />
-        <main>{children}</main>
+        <RoomProvider>
+          <Nav />
+          <main style={{ position: 'relative', height: '100dvh' }}>
+            <PageTransition>{children}</PageTransition>
+          </main>
+        </RoomProvider>
       </body>
     </html>
   )

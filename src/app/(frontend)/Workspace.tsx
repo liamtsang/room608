@@ -5,6 +5,8 @@ import { motion, AnimatePresence } from 'motion/react'
 import { RichText } from '@payloadcms/richtext-lexical/react'
 import type { Media, Project } from '@/payload-types'
 import { Timeline } from './components/Timeline/Timeline'
+import { usePageTransition } from './components/TransitionContext'
+import { useRoom } from './components/RoomContext'
 
 interface Position {
   x: number
@@ -43,6 +45,15 @@ function extractTextFromLexical(node: unknown): string {
   if (Array.isArray(n.children)) return n.children.map(extractTextFromLexical).join('')
   if (n.root && typeof n.root === 'object') return extractTextFromLexical(n.root)
   return ''
+}
+
+function estimateCreditsSize(title: string, credits: NonNullable<Project['credits']>): ItemSize {
+  const chWidth = 10.8
+  const lineHeight = 32
+  const longest = Math.max(title.length, ...credits.map((c) => `${c.role}: ${c.name}`.length))
+  const w = longest * chWidth + 32
+  const h = (1 + credits.length) * lineHeight + 16
+  return { w: Math.round(w), h: Math.round(h) }
 }
 
 function estimateDescriptionSize(description: Project['description']): ItemSize {
@@ -136,6 +147,8 @@ function FloatingUnit({
 }
 
 export function Workspace({ projects }: { projects: Project[] }) {
+  const { transitioning } = usePageTransition()
+  const { roomEntered } = useRoom()
   const [selectedId, setSelectedId] = useState<number | null>(projects[0]?.id ?? null)
   const [direction, setDirection] = useState(0) // -1 = left, 1 = right
   const prevSelectedId = useRef(selectedId)
@@ -189,13 +202,16 @@ export function Workspace({ projects }: { projects: Project[] }) {
     [selected],
   )
 
+  const credits = selected?.credits ?? []
+
   const positions = useMemo(() => {
     if (!viewport || !selected) return []
     const items: ItemSize[] = []
+    if (credits.length > 0) items.push(estimateCreditsSize(selected.title, credits))
     if (selected.description) items.push(estimateDescriptionSize(selected.description))
     for (const img of images) items.push(estimateImageSize(img))
     return forcePlacement(items, selected.id)
-  }, [selected?.id, images, viewport, selected?.description])
+  }, [selected?.id, images, viewport, selected?.description, credits])
 
   const bringToFront = useCallback((key: string) => {
     const next = ++zCounter.current
@@ -206,12 +222,23 @@ export function Workspace({ projects }: { projects: Project[] }) {
     return (
       <div className="flex h-screen flex-col">
         {/* Timeline at top */}
-        <Timeline
-          projects={projects}
-          selectedId={selectedId}
-          onSelectProject={handleSelectProject}
-          mobile
-        />
+        <AnimatePresence>
+          {!transitioning && roomEntered && (
+            <motion.div
+              initial={{ y: '-100%', opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: '-100%', opacity: 0 }}
+              transition={{ type: 'spring', stiffness: 100, damping: 10000 }}
+            >
+              <Timeline
+                projects={projects}
+                selectedId={selectedId}
+                onSelectProject={handleSelectProject}
+                mobile
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Scrollable content */}
         <div className="flex-1 overflow-hidden">
@@ -240,6 +267,28 @@ export function Workspace({ projects }: { projects: Project[] }) {
                 exit="exit"
                 transition={{ type: 'spring', stiffness: 400, damping: 35 }}
               >
+                {credits.length > 0 && (
+                  <motion.div
+                    className="bg-[#C6B79C] outline-1 outline-color-[#3D3D3D] drop-shadow-md p-3 grid gap-2 grid-cols-[auto, 1fr]"
+                    variants={{
+                      enter: { opacity: 0, y: 0 },
+                      center: { opacity: 1, y: 0 },
+                    }}
+                    transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                  >
+                    <div className="grid grid-cols-subgrid col-span-2 w-fit gap-2">
+                      <div className="outline-1 outline-color-[#3D3D3D] p-2">Title</div>
+                      <div className="outline-1 outline-color-[#3D3D3D] p-2">{selected.title}</div>
+                    </div>
+                    {credits.map((c, i) => (
+                      <div className="grid grid-cols-subgrid col-span-2 w-fit gap-2" key={i}>
+                        <div className="outline-1 outline-color-[#3D3D3D] p-2">{c.role}</div>
+                        <div className="outline-1 outline-color-[#3D3D3D] p-2">{c.name}</div>
+                      </div>
+                    ))}
+                  </motion.div>
+                )}
+
                 {selected.description && (
                   <motion.div
                     className="bg-[#C6B79C] outline-1 outline-color-[#515151] drop-shadow-md"
@@ -292,22 +341,49 @@ export function Workspace({ projects }: { projects: Project[] }) {
           {selected && positions.length > 0 ? (
             <div key={selected.id} className="contents">
               {/* Floating units */}
-              {selected.description && (
+              {credits.length > 0 && (
                 <FloatingUnit
-                  key={`desc-${selected.id}`}
+                  key={`credits-${selected.id}`}
                   position={positions[0]}
                   index={0}
-                  zIndex={zIndices[`desc-${selected.id}`] ?? 1}
-                  onFocus={() => bringToFront(`desc-${selected.id}`)}
+                  zIndex={zIndices[`credits-${selected.id}`] ?? 1}
+                  onFocus={() => bringToFront(`credits-${selected.id}`)}
                 >
-                  <div className="bg-[#C6B79C] outline-1 outline-color-[#515151] drop-shadow-md">
-                    <RichText data={selected.description} />
+                  <div className="bg-[#C6B79C] outline-1 outline-color-[#3D3D3D] drop-shadow-md p-3 grid grid-cols-[auto,1fr] gap-2">
+                    <div className="grid grid-cols-subgrid col-span-2 w-fit gap-2">
+                      <div className="outline-1 outline-color-[#3D3D3D] p-2">Title</div>
+                      <div className="outline-1 outline-color-[#3D3D3D] p-2">{selected.title}</div>
+                    </div>
+                    {credits.map((c, i) => (
+                      <div className="grid grid-cols-subgrid col-span-2 w-fit gap-2" key={i}>
+                        <div className="outline-1 outline-color-[#3D3D3D] p-2">{c.role}</div>
+                        <div className="outline-1 outline-color-[#3D3D3D] p-2">{c.name}</div>
+                      </div>
+                    ))}
                   </div>
                 </FloatingUnit>
               )}
 
+              {selected.description &&
+                (() => {
+                  const posIndex = credits.length > 0 ? 1 : 0
+                  return (
+                    <FloatingUnit
+                      key={`desc-${selected.id}`}
+                      position={positions[posIndex]}
+                      index={posIndex}
+                      zIndex={zIndices[`desc-${selected.id}`] ?? 1}
+                      onFocus={() => bringToFront(`desc-${selected.id}`)}
+                    >
+                      <div className="bg-[#C6B79C] outline-1 outline-color-[#515151] drop-shadow-md">
+                        <RichText data={selected.description} />
+                      </div>
+                    </FloatingUnit>
+                  )
+                })()}
+
               {images.map((img, i) => {
-                const posIndex = selected.description ? i + 1 : i
+                const posIndex = (credits.length > 0 ? 1 : 0) + (selected.description ? 1 : 0) + i
                 const key = `img-${img.id}`
                 return (
                   <FloatingUnit
@@ -340,7 +416,22 @@ export function Workspace({ projects }: { projects: Project[] }) {
       </div>
 
       {/* Timeline */}
-      <Timeline projects={projects} selectedId={selectedId} onSelectProject={handleSelectProject} />
+      <AnimatePresence>
+        {!transitioning && roomEntered && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ type: 'spring', stiffness: 100, damping: 30, delay: 0.4 }}
+          >
+            <Timeline
+              projects={projects}
+              selectedId={selectedId}
+              onSelectProject={handleSelectProject}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

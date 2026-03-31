@@ -11,7 +11,7 @@ const portraits: { src: string; origin: 'left' | 'center' | 'right' }[] = [
 
 export default async function About() {
   return (
-    <div style={{ padding: '2rem', maxWidth: '1024px', margin: '0 auto' }}>
+    <div style={{ padding: '2rem', maxWidth: '1024px', margin: '0 auto', paddingTop: '6rem' }}>
       <div
         style={{
           display: 'flex',
@@ -28,7 +28,7 @@ export default async function About() {
             alt=""
             width={120}
             height={120}
-            className="object-cover aspect-square border-2 border-white outline outline-black w-[15%]"
+            className="object-cover aspect-square border-2 border-white outline outline-black w-10% md:w-[15%]"
             style={{ objectPosition: origin }}
           />
         ))}

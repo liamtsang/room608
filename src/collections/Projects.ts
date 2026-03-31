@@ -27,6 +27,22 @@ export const Projects: CollectionConfig = {
       },
     },
     {
+      name: 'credits',
+      type: 'array',
+      fields: [
+        {
+          name: 'role',
+          type: 'text',
+          required: true,
+        },
+        {
+          name: 'name',
+          type: 'text',
+          required: true,
+        },
+      ],
+    },
+    {
       name: 'description',
       type: 'richText',
     },

@@ -3,6 +3,8 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import Image from 'next/image'
+import { motion } from 'motion/react'
+import { useRoom } from './RoomContext'
 
 const links = [
   { href: '/', label: 'work' },
@@ -12,9 +14,15 @@ const links = [
 
 export default function Nav() {
   const pathname = usePathname()
+  const { roomEntered } = useRoom()
 
   return (
-    <nav className="flex flex-col gap-4 p-8 absolute isolate z-10">
+    <motion.nav
+      className="sm:invisible md:visible flex flex-col gap-4 p-8 absolute isolate z-10"
+      animate={{ opacity: roomEntered ? 1 : 0 }}
+      transition={{ type: 'spring', stiffness: 100, damping: 20 }}
+      style={{ pointerEvents: roomEntered ? 'auto' : 'none' }}
+    >
       <Image
         src="/logo hd.png"
         alt="room608 logo"
@@ -36,6 +44,6 @@ export default function Nav() {
           </Link>
         )
       })}
-    </nav>
+    </motion.nav>
   )
 }

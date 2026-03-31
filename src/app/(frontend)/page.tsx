@@ -1,6 +1,7 @@
 import { getPayload } from 'payload'
 import config from '@/payload.config'
 import { Workspace } from './Workspace'
+import { RoomScene } from './components/RoomScene'
 import './styles.css'
 
 export default async function HomePage() {
@@ -13,5 +14,9 @@ export default async function HomePage() {
     depth: 1,
   })
 
-  return <Workspace projects={projects} />
+  return (
+    <RoomScene>
+      <Workspace projects={projects} />
+    </RoomScene>
+  )
 }
