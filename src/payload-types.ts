@@ -173,6 +173,27 @@ export interface Project {
         id?: string | null;
       }[]
     | null;
+  awards?:
+    | {
+        type:
+          | 'news-documentary-emmy'
+          | 'primetime-emmy'
+          | 'emmy-nomination'
+          | 'television-academy-honors'
+          | 'wildscreen-award'
+          | 'jackson-wildlife'
+          | 'daytime-emmy'
+          | 'peabody'
+          | 'webby-nomination'
+          | 'sxsw-audience'
+          | 'banff'
+          | 'new-york-emmy'
+          | 'gold-hugo'
+          | 'wildscreen-panda';
+        details?: string | null;
+        id?: string | null;
+      }[]
+    | null;
   description?: {
     root: {
       type: string;
@@ -320,6 +341,13 @@ export interface ProjectsSelect<T extends boolean = true> {
     | {
         role?: T;
         name?: T;
+        id?: T;
+      };
+  awards?:
+    | T
+    | {
+        type?: T;
+        details?: T;
         id?: T;
       };
   description?: T;

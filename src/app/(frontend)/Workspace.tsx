@@ -204,14 +204,28 @@ export function Workspace({ projects }: { projects: Project[] }) {
 
   const credits = selected?.credits ?? []
 
+  const emmyAwards = useMemo(
+    () =>
+      (selected?.awards ?? []).filter(
+        (a) =>
+          a.type === 'news-documentary-emmy' ||
+          a.type === 'primetime-emmy' ||
+          a.type === 'emmy-nomination' ||
+          a.type === 'daytime-emmy' ||
+          a.type === 'new-york-emmy',
+      ),
+    [selected],
+  )
+
   const positions = useMemo(() => {
     if (!viewport || !selected) return []
     const items: ItemSize[] = []
     if (credits.length > 0) items.push(estimateCreditsSize(selected.title, credits))
     if (selected.description) items.push(estimateDescriptionSize(selected.description))
     for (const img of images) items.push(estimateImageSize(img))
+    if (emmyAwards.length > 0) items.push({ w: 120, h: 256 })
     return forcePlacement(items, selected.id)
-  }, [selected?.id, images, viewport, selected?.description, credits])
+  }, [selected?.id, images, viewport, selected?.description, credits, emmyAwards.length])
 
   const bringToFront = useCallback((key: string) => {
     const next = ++zCounter.current
@@ -299,6 +313,33 @@ export function Workspace({ projects }: { projects: Project[] }) {
                     transition={{ type: 'spring', stiffness: 400, damping: 30 }}
                   >
                     <RichText data={selected.description} />
+                  </motion.div>
+                )}
+
+                {emmyAwards.length > 0 && (
+                  <motion.div
+                    className="flex flex-col items-center py-4"
+                    variants={{
+                      enter: { opacity: 0, y: 0 },
+                      center: { opacity: 1, y: 0 },
+                    }}
+                    transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                  >
+                    <div className="group relative flex flex-col items-center">
+                      <img
+                        src="/awards/emmy.png"
+                        alt="Emmy Award"
+                        draggable={false}
+                        className="h-32 w-auto select-none drop-shadow-lg"
+                      />
+                      <div className="mt-2 bg-[#C6B79C] outline-1 outline-[#3D3D3D] drop-shadow-md p-3">
+                        {emmyAwards.map((a, i) => (
+                          <div key={i} className="text-sm">
+                            {a.details || a.type}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   </motion.div>
                 )}
 
@@ -406,6 +447,39 @@ export function Workspace({ projects }: { projects: Project[] }) {
                   </FloatingUnit>
                 )
               })}
+
+              {emmyAwards.length > 0 &&
+                (() => {
+                  const posIndex =
+                    (credits.length > 0 ? 1 : 0) +
+                    (selected.description ? 1 : 0) +
+                    images.length
+                  return (
+                <FloatingUnit
+                  key={`emmy-${selected.id}`}
+                  position={positions[posIndex]}
+                  index={posIndex}
+                  zIndex={zIndices[`emmy-${selected.id}`] ?? 1}
+                  onFocus={() => bringToFront(`emmy-${selected.id}`)}
+                >
+                  <div className="group relative flex flex-col items-center">
+                    <img
+                      src="/awards/emmy.png"
+                      alt="Emmy Award"
+                      draggable={false}
+                      className="h-64 w-auto select-none drop-shadow-lg"
+                    />
+                    <div className="pointer-events-none absolute top-full mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-[#C6B79C] outline-1 outline-[#3D3D3D] drop-shadow-md p-3 whitespace-nowrap">
+                      {emmyAwards.map((a, i) => (
+                        <div key={i} className="text-sm">
+                          {a.details || a.type}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </FloatingUnit>
+                  )
+                })()}
             </div>
           ) : (
             <div className="flex h-full items-center justify-center opacity-40">

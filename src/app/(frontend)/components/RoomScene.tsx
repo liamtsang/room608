@@ -92,7 +92,7 @@ export function RoomScene({ children }: { children: React.ReactNode }) {
             alignItems: 'center',
             justifyContent: 'center',
             gap: 24,
-            background: '#282828',
+            background: '',
             cursor: 'pointer',
           }}
         >
@@ -140,7 +140,7 @@ export function RoomScene({ children }: { children: React.ReactNode }) {
             position: 'absolute',
             inset: 0,
             transform: 'rotateY(-90deg) translateZ(-50vh)',
-            background: '#282828',
+            background: '',
           }}
         />
 
@@ -150,7 +150,7 @@ export function RoomScene({ children }: { children: React.ReactNode }) {
             position: 'absolute',
             inset: 0,
             transform: 'rotateY(90deg) translateZ(-50vh)',
-            background: '#282828',
+            background: '',
           }}
         />
 

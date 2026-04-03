@@ -67,11 +67,6 @@ body {
   }
 }
 
-img {
-  height: auto;
-  display: block;
-}
-
 h1 {
   margin: 40px 0;
   font-size: 64px;

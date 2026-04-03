@@ -1,6 +1,7 @@
 import * as migration_20250929_111647 from './20250929_111647';
 import * as migration_20260228_225145_initial from './20260228_225145_initial';
 import * as migration_20260331_201859_add_credits from './20260331_201859_add_credits';
+import * as migration_20260401_add_awards from './20260401_add_awards';
 
 export const migrations = [
   {
@@ -17,5 +18,10 @@ export const migrations = [
     up: migration_20260331_201859_add_credits.up,
     down: migration_20260331_201859_add_credits.down,
     name: '20260331_201859_add_credits'
+  },
+  {
+    up: migration_20260401_add_awards.up,
+    down: migration_20260401_add_awards.down,
+    name: '20260401_add_awards'
   },
 ];
