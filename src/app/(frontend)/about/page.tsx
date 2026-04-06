@@ -1,5 +1,19 @@
 import Image from 'next/image'
 
+const logos: { src: string; alt: string }[] = [
+  { src: '/logos/76th-emmys-gold-logo 1.png', alt: 'Emmy Awards' },
+  { src: '/logos/Peabody_Awards_idqmkUud5B_1 1.png', alt: 'Peabody Awards' },
+  { src: '/logos/SXSW_Logo_5 1.png', alt: 'SXSW' },
+  { src: '/logos/images 1.png', alt: 'Chicago International Film Festival' },
+  { src: '/logos/Jackson+Wild+Primary+White 1.png', alt: 'Jackson Wild' },
+  { src: '/logos/Wildscreen_Wordmark-Frame-White.png 1.png', alt: 'Wildscreen' },
+  {
+    src: '/logos/Xx6CdzqTnuxICsiEYz9E_Banff26_logoDates_white 1.png',
+    alt: 'Banff World Media Festival',
+  },
+  { src: '/logos/image 1.png', alt: 'CPB' },
+]
+
 const portraits: { src: string; origin: 'left' | 'center' | 'right' }[] = [
   { src: '/portraits/608+Portraits+52.webp', origin: 'left' },
   { src: '/portraits/IMG_0507.webp', origin: 'right' },
@@ -11,69 +25,85 @@ const portraits: { src: string; origin: 'left' | 'center' | 'right' }[] = [
 
 export default async function About() {
   return (
-    <div style={{ padding: '2rem', maxWidth: '1024px', margin: '0 auto', paddingTop: '6rem' }}>
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'center',
-          gap: '1rem',
-          flexWrap: 'wrap',
-          marginBottom: '2rem',
-        }}
-      >
-        {portraits.map(({ src, origin }) => (
-          <Image
-            key={src}
-            src={src}
-            alt=""
-            width={120}
-            height={120}
-            className="object-cover aspect-square border-2 border-white outline outline-black w-10% md:w-[15%]"
-            style={{ objectPosition: origin }}
-          />
-        ))}
-      </div>
+    <div className="dot-grid-bg min-h-screen">
+      <div style={{ padding: '2rem', maxWidth: '1024px', margin: '0 auto', paddingTop: '6rem' }}>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'center',
+            gap: '1rem',
+            flexWrap: 'wrap',
+            marginBottom: '2rem',
+          }}
+        >
+          {portraits.map(({ src, origin }) => (
+            <Image
+              key={src}
+              src={src}
+              alt=""
+              width={120}
+              height={120}
+              className="object-cover aspect-square border-2 border-white outline outline-black w-10% md:w-[15%]"
+              style={{ objectPosition: origin }}
+            />
+          ))}
+        </div>
 
-      <div className="bg-[#C6B79C] outline-1 outline-color-[#515151] drop-shadow-md">
-        <p>
-          Mark Mannucci and Jon Halperin have been collaborating since 2007. Jon had been a fan of
-          Mark&apos;s PBS series Egg The Arts Show, so when he was tapped to EP National Geographic
-          Explorer his very first directing hire was Mark. Mark went on to make six films for Jon at
-          Explorer. His films were among the highest rated on the series and won some of the most
-          prestigious awards in television. When Jon decided to leave Geographic in 2012 and move to
-          New York, the two decided to hang a shingle together with a simple mission: build a
-          company of filmmakers and craftspeople who value intense collaboration and creatively
-          challenging projects. Their first office was in the heart of Hell&apos;s Kitchen and is
-          now located just north of the city on the Hudson River in a 100-year-old brewery building.
-          Both offices were built around large open spaces where ideas can be exchanged freely.
-        </p>
-        <p className="min-w-[55ch]"></p>
-        <p>
-          To work at Room 608, one has to be creatively fearless, willing to take risks, to work
-          fluidly with others — in other words you have to be smart and enjoy the process of
-          creating as a team. Jon and Mark love to nurture the creativity and imagination of their
-          teams – as gratifying as that is for them personally, the ultimate benefit is work that
-          everyone can all be proud of: that is imaginative, high-quality, and profitable.
-        </p>
-        <p className="min-w-[55ch]"></p>
-        <p>
-          In the past eight years, Jon and Mark have made films and series for Amazon, Netflix, Vox,
-          PBS, PBS Digital, ITVS, The Atlantic, The World, History, and National Geographic. Their
-          work has been screened at festivals around the world and In 2017, they won a National News
-          and Documentary Emmy for Best Science film for A Year In Space. Collectively, in their
-          careers, they have won two Peabody Awards, seven Emmys, and have been nominated another 14
-          times. They are currently producing a kids&apos; music series for a major streamer, a
-          feature documentary for Netflix, a feature documentary for Time, and a five-hour series
-          for PBS.
-        </p>
-        <p className="min-w-[55ch]"></p>
-        <p>
-          Jon and Mark are interested in telling the best factual stories, in the most visually
-          stimulating way they can, with the most creative and talented craftspeople in the
-          business. Their ideas stretch across the whole of factual - science, history, crime, even
-          horror. Teams at Room 608 can produce and direct everything from innovative animation to
-          intimate verite documentaries.
-        </p>
+        <div className="bg-[#C6B79C] outline-1 outline-color-[#515151] drop-shadow-md">
+          <p>
+            Mark Mannucci and Jon Halperin have been collaborating since 2007. Jon had been a fan of
+            Mark&apos;s PBS series Egg The Arts Show, so when he was tapped to EP National
+            Geographic Explorer his very first directing hire was Mark. Mark went on to make six
+            films for Jon at Explorer. His films were among the highest rated on the series and won
+            some of the most prestigious awards in television. When Jon decided to leave Geographic
+            in 2012 and move to New York, the two decided to hang a shingle together with a simple
+            mission: build a company of filmmakers and craftspeople who value intense collaboration
+            and creatively challenging projects. Their first office was in the heart of Hell&apos;s
+            Kitchen and is now located just north of the city on the Hudson River in a 100-year-old
+            brewery building. Both offices were built around large open spaces where ideas can be
+            exchanged freely.
+          </p>
+          <p className="min-w-[55ch]"></p>
+          <p>
+            To work at Room 608, one has to be creatively fearless, willing to take risks, to work
+            fluidly with others — in other words you have to be smart and enjoy the process of
+            creating as a team. Jon and Mark love to nurture the creativity and imagination of their
+            teams – as gratifying as that is for them personally, the ultimate benefit is work that
+            everyone can all be proud of: that is imaginative, high-quality, and profitable.
+          </p>
+          <p className="min-w-[55ch]"></p>
+          <p>
+            In the past eight years, Jon and Mark have made films and series for Amazon, Netflix,
+            Vox, PBS, PBS Digital, ITVS, The Atlantic, The World, History, and National Geographic.
+            Their work has been screened at festivals around the world and In 2017, they won a
+            National News and Documentary Emmy for Best Science film for A Year In Space.
+            Collectively, in their careers, they have won two Peabody Awards, seven Emmys, and have
+            been nominated another 14 times. They are currently producing a kids&apos; music series
+            for a major streamer, a feature documentary for Netflix, a feature documentary for Time,
+            and a five-hour series for PBS.
+          </p>
+          <p className="min-w-[55ch]"></p>
+          <p>
+            Jon and Mark are interested in telling the best factual stories, in the most visually
+            stimulating way they can, with the most creative and talented craftspeople in the
+            business. Their ideas stretch across the whole of factual - science, history, crime,
+            even horror. Teams at Room 608 can produce and direct everything from innovative
+            animation to intimate verite documentaries.
+          </p>
+        </div>
+
+        <div className="mt-12 flex flex-wrap items-center justify-center gap-8">
+          {logos.map(({ src, alt }) => (
+            <Image
+              key={src}
+              src={src}
+              alt={alt}
+              width={120}
+              height={60}
+              className="h-12 w-auto object-contain select-none invert mix-blend-darken"
+            />
+          ))}
+        </div>
       </div>
     </div>
   )
