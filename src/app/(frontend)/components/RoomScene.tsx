@@ -94,6 +94,7 @@ export function RoomScene({ children }: { children: React.ReactNode }) {
             gap: 24,
             background: '',
             cursor: 'pointer',
+            pointerEvents: 'none',
           }}
         >
           <Image
@@ -141,6 +142,7 @@ export function RoomScene({ children }: { children: React.ReactNode }) {
             inset: 0,
             transform: 'rotateY(-90deg) translateZ(-50vh)',
             background: '',
+            pointerEvents: 'none',
           }}
         />
 
@@ -151,6 +153,7 @@ export function RoomScene({ children }: { children: React.ReactNode }) {
             inset: 0,
             transform: 'rotateY(90deg) translateZ(-50vh)',
             background: '',
+            pointerEvents: 'none',
           }}
         />
 

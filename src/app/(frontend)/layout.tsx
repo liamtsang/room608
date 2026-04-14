@@ -25,10 +25,12 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
     <html lang="en">
       <body>
         <RoomProvider>
-          <Nav />
-          <main style={{ position: 'relative', height: '100dvh' }}>
-            <PageTransition>{children}</PageTransition>
-          </main>
+          <div className="block h-[100dvh]">
+            <main className="relative flex-1 h-[100dvh] overflow-hidden">
+              <PageTransition>{children}</PageTransition>
+            </main>
+            <Nav />
+          </div>
         </RoomProvider>
       </body>
     </html>

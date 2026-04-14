@@ -1,4 +1,5 @@
 import Image from 'next/image'
+import { MobileNav } from '../components/MobileNav'
 
 const logos: { src: string; alt: string }[] = [
   { src: '/logos/76th-emmys-gold-logo 1.png', alt: 'Emmy Awards' },
@@ -26,16 +27,8 @@ const portraits: { src: string; origin: 'left' | 'center' | 'right' }[] = [
 export default async function About() {
   return (
     <div className="dot-grid-bg min-h-screen">
-      <div style={{ padding: '2rem', maxWidth: '1024px', margin: '0 auto', paddingTop: '6rem' }}>
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'center',
-            gap: '1rem',
-            flexWrap: 'wrap',
-            marginBottom: '2rem',
-          }}
-        >
+      <div className="p-2 md:p-8 md:pt-24 max-w-5xl mx-auto">
+        <div className="flex justify-center gap-4 flex-wrap mb-8">
           {portraits.map(({ src, origin }) => (
             <Image
               key={src}
@@ -100,10 +93,12 @@ export default async function About() {
               alt={alt}
               width={120}
               height={60}
-              className="h-12 w-auto object-contain select-none invert mix-blend-darken"
+              className="h-8 md:h-12 mb-2 md:mb-0 w-auto object-contain select-none invert mix-blend-darken"
             />
           ))}
         </div>
+
+        <MobileNav />
       </div>
     </div>
   )

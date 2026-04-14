@@ -18,7 +18,7 @@ export default function Nav() {
 
   return (
     <motion.nav
-      className="sm:invisible md:visible flex flex-col gap-4 p-8 absolute isolate z-10"
+      className="hidden md:flex flex-col gap-4 p-8 fixed top-0 isolate z-10"
       animate={{ opacity: roomEntered ? 1 : 0 }}
       transition={{ type: 'spring', stiffness: 100, damping: 20 }}
       style={{ pointerEvents: roomEntered ? 'auto' : 'none' }}

@@ -7,6 +7,8 @@ import type { Media, Project } from '@/payload-types'
 import { Timeline } from './components/Timeline/Timeline'
 import { usePageTransition } from './components/TransitionContext'
 import { useRoom } from './components/RoomContext'
+import { MobileNav } from './components/MobileNav'
+import { customPositions } from './workspace-positions'
 
 interface Position {
   x: number
@@ -81,14 +83,31 @@ function forcePlacement(items: ItemSize[], seed: number): Position[] {
     { dx: 1, dy: 1 }, // bottom-right
   ]
 
+  // Track placed items to push later ones outward past them
+  const placed: { tx: number; ty: number; w: number; h: number }[] = []
+
   return items.map((item, i) => {
     const qi = i % dirs.length
+    const ring = Math.floor(i / dirs.length)
     const d = dirs[qi]
-    // Translate by the item's full size + gap so adjacent quadrants don't overlap
     const gap = 16
-    const tx = d.dx * (item.w * 0.5 + gap + rand() * noise)
-    const ty = d.dy * (item.h * 0.5 + gap + rand() * noise)
 
+    // Base offset: half the item size + gap + noise
+    let tx = d.dx * (item.w * 0.5 + gap + rand() * noise)
+    let ty = d.dy * (item.h * 0.5 + gap + rand() * noise)
+
+    // For rings beyond the first, push outward past already-placed items in the same quadrant
+    if (ring > 0) {
+      // Find the previous item placed in the same quadrant
+      const prev = placed[i - dirs.length]
+      // Push beyond the previous item's far edge
+      const extraX = Math.abs(prev.tx) + prev.w * 0.5 + gap
+      const extraY = Math.abs(prev.ty) + prev.h * 0.5 + gap
+      tx = d.dx * (item.w * 0.5 + extraX + rand() * noise)
+      ty = d.dy * (item.h * 0.5 + extraY + rand() * noise)
+    }
+
+    placed.push({ tx, ty, w: item.w, h: item.h })
     return { x: 50, y: 50, rotate: 0, tx, ty }
   })
 }
@@ -99,12 +118,16 @@ function FloatingUnit({
   index,
   onFocus,
   zIndex,
+  itemKey,
+  onDragEnd,
 }: {
   children: React.ReactNode
   position: Position
   index: number
   onFocus: () => void
   zIndex: number
+  itemKey: string
+  onDragEnd: (key: string, offset: { x: number; y: number }) => void
 }) {
   return (
     <motion.div
@@ -132,6 +155,9 @@ function FloatingUnit({
       }}
       whileDrag={{ scale: 1.03, cursor: 'grabbing' }}
       onPointerDown={onFocus}
+      onDragEnd={(_e, info) => {
+        onDragEnd(itemKey, { x: info.offset.x, y: info.offset.y })
+      }}
       style={{
         position: 'absolute',
         left: `${position.x}%`,
@@ -219,6 +245,21 @@ export function Workspace({ projects }: { projects: Project[] }) {
 
   const positions = useMemo(() => {
     if (!viewport || !selected) return []
+
+    // Build ordered keys matching render order
+    const keys: string[] = []
+    if (credits.length > 0) keys.push('credits')
+    if (selected.description) keys.push('desc')
+    for (const img of images) keys.push(`img-${img.id}`)
+    if (emmyAwards.length > 0) keys.push('emmy')
+
+    // Check for custom positions for this project
+    const custom = customPositions[selected.id]
+    if (custom && keys.every((k) => custom[k])) {
+      return keys.map((k) => custom[k])
+    }
+
+    // Fall back to algorithmic placement
     const items: ItemSize[] = []
     if (credits.length > 0) items.push(estimateCreditsSize(selected.title, credits))
     if (selected.description) items.push(estimateDescriptionSize(selected.description))
@@ -231,6 +272,82 @@ export function Workspace({ projects }: { projects: Project[] }) {
     const next = ++zCounter.current
     setZIndices((prev) => ({ ...prev, [key]: next }))
   }, [])
+
+  // Track cumulative drag offsets per item key
+  const dragOffsets = useRef<Record<string, { x: number; y: number }>>({})
+
+  const handleDragEnd = useCallback((key: string, offset: { x: number; y: number }) => {
+    const prev = dragOffsets.current[key] ?? { x: 0, y: 0 }
+    dragOffsets.current[key] = { x: prev.x + offset.x, y: prev.y + offset.y }
+  }, [])
+
+  // Reset drag offsets when project changes
+  useEffect(() => {
+    dragOffsets.current = {}
+  }, [selected?.id])
+
+  // Expose console commands
+  useEffect(() => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const g = globalThis as any
+
+    g.dumpPositions = () => {
+      if (!selected || positions.length === 0) {
+        console.log('No project selected or no positions computed.')
+        return
+      }
+
+      // Build key-to-index mapping matching the render order
+      const keys: string[] = []
+      if (credits.length > 0) keys.push(`credits`)
+      if (selected.description) keys.push(`desc`)
+      for (const img of images) keys.push(`img-${img.id}`)
+      if (emmyAwards.length > 0) keys.push(`emmy`)
+
+      // Build matching itemKeys (same format as passed to FloatingUnit)
+      const itemKeys: string[] = []
+      if (credits.length > 0) itemKeys.push(`credits-${selected.id}`)
+      if (selected.description) itemKeys.push(`desc-${selected.id}`)
+      for (const img of images) itemKeys.push(`img-${img.id}`)
+      if (emmyAwards.length > 0) itemKeys.push(`emmy-${selected.id}`)
+
+      const result: Record<string, Position> = {}
+      keys.forEach((key, i) => {
+        const pos = positions[i]
+        if (!pos) return
+        const drag = dragOffsets.current[itemKeys[i]] ?? { x: 0, y: 0 }
+        result[key] = {
+          x: pos.x,
+          y: pos.y,
+          rotate: pos.rotate,
+          tx: Math.round(pos.tx + drag.x),
+          ty: Math.round(pos.ty + drag.y),
+        }
+      })
+
+      const output = {
+        projectId: selected.id,
+        projectTitle: selected.title,
+        positions: result,
+      }
+
+      console.log(JSON.stringify(output, null, 2))
+      return output
+    }
+
+    g.dumpAllHelp = () => {
+      console.log(
+        'Commands:\n' +
+          '  dumpPositions()  — prints current positions for the selected project (with drag offsets applied)\n' +
+          '  dumpAllHelp()    — prints this help message',
+      )
+    }
+
+    return () => {
+      delete g.dumpPositions
+      delete g.dumpAllHelp
+    }
+  }, [selected, positions, credits, images, emmyAwards])
 
   if (isMobile) {
     return (
@@ -316,6 +433,26 @@ export function Workspace({ projects }: { projects: Project[] }) {
                   </motion.div>
                 )}
 
+                {images.map((img) => (
+                  <motion.div
+                    key={img.id}
+                    className="border-b border-white"
+                    variants={{
+                      enter: { opacity: 0, y: 0 },
+                      center: { opacity: 1, y: 0 },
+                    }}
+                    transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                  >
+                    {img.url && (
+                      <img
+                        src={img.url}
+                        alt={img.alt}
+                        className="w-full object-contain border border-white outline-2 outline-[#3D3D3D]"
+                      />
+                    )}
+                  </motion.div>
+                ))}
+
                 {emmyAwards.length > 0 && (
                   <motion.div
                     className="flex flex-col items-center py-4"
@@ -343,25 +480,16 @@ export function Workspace({ projects }: { projects: Project[] }) {
                   </motion.div>
                 )}
 
-                {images.map((img) => (
-                  <motion.div
-                    key={img.id}
-                    className="border-b border-white"
-                    variants={{
-                      enter: { opacity: 0, y: 0 },
-                      center: { opacity: 1, y: 0 },
-                    }}
-                    transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-                  >
-                    {img.url && (
-                      <img
-                        src={img.url}
-                        alt={img.alt}
-                        className="w-full object-contain border border-white outline-2 outline-[#3D3D3D]"
-                      />
-                    )}
-                  </motion.div>
-                ))}
+                {/* Mobile nav */}
+                <motion.div
+                  variants={{
+                    enter: { opacity: 0, y: 0 },
+                    center: { opacity: 1, y: 0 },
+                  }}
+                  transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                >
+                  <MobileNav />
+                </motion.div>
               </motion.div>
             ) : (
               <div className="flex h-full items-center justify-center opacity-40">
@@ -389,6 +517,8 @@ export function Workspace({ projects }: { projects: Project[] }) {
                   index={0}
                   zIndex={zIndices[`credits-${selected.id}`] ?? 1}
                   onFocus={() => bringToFront(`credits-${selected.id}`)}
+                  itemKey={`credits-${selected.id}`}
+                  onDragEnd={handleDragEnd}
                 >
                   <div className="bg-[#C6B79C] outline-1 outline-color-[#3D3D3D] drop-shadow-md p-3 grid grid-cols-[auto,1fr] gap-2">
                     <div className="grid grid-cols-subgrid col-span-2 w-fit gap-2">
@@ -415,6 +545,8 @@ export function Workspace({ projects }: { projects: Project[] }) {
                       index={posIndex}
                       zIndex={zIndices[`desc-${selected.id}`] ?? 1}
                       onFocus={() => bringToFront(`desc-${selected.id}`)}
+                      itemKey={`desc-${selected.id}`}
+                      onDragEnd={handleDragEnd}
                     >
                       <div className="bg-[#C6B79C] outline-1 outline-color-[#515151] drop-shadow-md">
                         <RichText data={selected.description} />
@@ -433,6 +565,8 @@ export function Workspace({ projects }: { projects: Project[] }) {
                     index={posIndex}
                     zIndex={zIndices[key] ?? 1}
                     onFocus={() => bringToFront(key)}
+                    itemKey={key}
+                    onDragEnd={handleDragEnd}
                   >
                     <div className="overflow-hidden border border-white outline-2 outline-[#3D3D3D]">
                       {img.url && (
@@ -451,33 +585,33 @@ export function Workspace({ projects }: { projects: Project[] }) {
               {emmyAwards.length > 0 &&
                 (() => {
                   const posIndex =
-                    (credits.length > 0 ? 1 : 0) +
-                    (selected.description ? 1 : 0) +
-                    images.length
+                    (credits.length > 0 ? 1 : 0) + (selected.description ? 1 : 0) + images.length
                   return (
-                <FloatingUnit
-                  key={`emmy-${selected.id}`}
-                  position={positions[posIndex]}
-                  index={posIndex}
-                  zIndex={zIndices[`emmy-${selected.id}`] ?? 1}
-                  onFocus={() => bringToFront(`emmy-${selected.id}`)}
-                >
-                  <div className="group relative flex flex-col items-center">
-                    <img
-                      src="/awards/emmy.png"
-                      alt="Emmy Award"
-                      draggable={false}
-                      className="h-64 w-auto select-none drop-shadow-lg"
-                    />
-                    <div className="pointer-events-none absolute top-full mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-[#C6B79C] outline-1 outline-[#3D3D3D] drop-shadow-md p-3 whitespace-nowrap">
-                      {emmyAwards.map((a, i) => (
-                        <div key={i} className="text-sm">
-                          {a.details || a.type}
+                    <FloatingUnit
+                      key={`emmy-${selected.id}`}
+                      position={positions[posIndex]}
+                      index={posIndex}
+                      zIndex={zIndices[`emmy-${selected.id}`] ?? 1}
+                      onFocus={() => bringToFront(`emmy-${selected.id}`)}
+                      itemKey={`emmy-${selected.id}`}
+                      onDragEnd={handleDragEnd}
+                    >
+                      <div className="group relative flex flex-col items-center">
+                        <img
+                          src="/awards/emmy.png"
+                          alt="Emmy Award"
+                          draggable={false}
+                          className="h-64 w-auto select-none drop-shadow-lg"
+                        />
+                        <div className="pointer-events-none absolute top-full mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-[#C6B79C] outline-1 outline-[#3D3D3D] drop-shadow-md p-3 whitespace-nowrap">
+                          {emmyAwards.map((a, i) => (
+                            <div key={i} className="text-sm">
+                              {a.details || a.type}
+                            </div>
+                          ))}
                         </div>
-                      ))}
-                    </div>
-                  </div>
-                </FloatingUnit>
+                      </div>
+                    </FloatingUnit>
                   )
                 })()}
             </div>

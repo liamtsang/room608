@@ -49,14 +49,9 @@ main {
     var(--dot-color);*/
 }
 
-/*#transitionWrapper {
-  background:
-    linear-gradient(90deg, var(--dot-bg) calc(var(--dot-space) - var(--dot-size)), transparent 1%)
-      center / var(--dot-space) var(--dot-space),
-    linear-gradient(var(--dot-bg) calc(var(--dot-space) - var(--dot-size)), transparent 1%) center /
-      var(--dot-space) var(--dot-space),
-    var(--dot-color);
-}*/
+#transitionWrapper {
+  overflow: auto;
+}
 
 .dot-grid-bg {
   background:
@@ -114,7 +109,7 @@ h1 {
 
 p {
   width: fit-content;
-  --cell-border: 0.5px;
+  --cell-border: 0.75px;
   --cell-color: #c0b7a4;
   --cell-fill: #d3c8b3;
   background-image:
@@ -180,7 +175,7 @@ svg {
 .timeline-mobile {
   position: relative;
   bottom: auto;
-  height: 84px;
+  height: 108px;
   border-top: none;
   border-bottom: 1px solid #868686;
   flex-shrink: 0;
