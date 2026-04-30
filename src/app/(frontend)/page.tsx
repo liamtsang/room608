@@ -12,6 +12,7 @@ export default async function HomePage() {
     collection: 'projects',
     sort: '-date',
     depth: 1,
+    limit: 0,
   })
 
   return (
