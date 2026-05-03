@@ -20,7 +20,7 @@ function Tile({ project, onSelect }: { project: Project; onSelect: (id: number) 
       whileTap={{ scale: 0.97 }}
       className="cursor-pointer text-left shrink-0 h-full"
     >
-      <div className="bg-[#C6B79C] outline-1 outline-[#3D3D3D] drop-shadow-md p-2 flex flex-col gap-2 h-full">
+      <div className="outline-1 outline-[#3D3D3D] p-2 flex flex-col gap-2 h-full">
         {thumb?.url ? (
           <div className="overflow-hidden border border-white outline-2 outline-[#3D3D3D] aspect-[16/9] h-full">
             <img
