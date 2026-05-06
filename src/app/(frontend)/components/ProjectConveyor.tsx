@@ -1,21 +1,18 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import {
-  motion,
-  useMotionValue,
-  useSpring,
-  useTransform,
-  type MotionValue,
-} from 'motion/react'
+import { motion, useMotionValue, useSpring, useTransform, type MotionValue } from 'motion/react'
 import type { Media, Project } from '@/payload-types'
 
 const ROW_COUNT = 3
 const TILE_GAP = 16
 // Wheel deltas land in big discrete jumps; scale down per-tick step so the
 // spring has room to smooth between events.
-const WHEEL_STEP = 0.25
-const SPRING = { stiffness: 60, damping: 20, mass: 0.6 }
+const DEFAULT_WHEEL_STEP = 3
+const DEFAULT_SPRING = { stiffness: 158, damping: 28, mass: 0.4 }
+// Multiplier on tileWidth used as the minimum off-screen pad per row side.
+// 1 = exactly one tile of off-screen pad (smooth row-to-row teleport).
+const DEFAULT_PAD_FACTOR = 1
 // Park hidden tiles far enough left that they can't bleed into a neighbour.
 const OFFSCREEN = -99999
 
@@ -28,7 +25,19 @@ function mod(n: number, m: number) {
   return ((n % m) + m) % m
 }
 
-function Tile({ project, onSelect }: { project: Project; onSelect: (id: number) => void }) {
+// Tint blended into the duplicate background image when faded. Adjust to
+// taste — neutrals desaturate, hues recolor.
+const FADE_TINT = '#C6B79C'
+
+function Tile({
+  project,
+  onSelect,
+  faded,
+}: {
+  project: Project
+  onSelect: (id: number) => void
+  faded: boolean
+}) {
   const thumb = firstImage(project)
   return (
     <motion.button
@@ -38,16 +47,38 @@ function Tile({ project, onSelect }: { project: Project; onSelect: (id: number) 
       whileTap={{ scale: 0.97 }}
       className="cursor-pointer text-left h-full"
     >
-      <div className="outline-1 outline-[#3D3D3D] p-2 flex flex-col gap-2 h-full">
+      <div className="p-2 flex flex-col gap-2 h-full">
         {thumb?.url ? (
-          <div className="overflow-hidden border border-white outline-2 outline-[#3D3D3D] aspect-[16/9] h-full">
-            <img
+          <motion.div
+            className="overflow-hidden border border-white outline-2 aspect-[16/9] h-full relative"
+            animate={{
+              outlineColor: faded ? 'rgba(61, 61, 61, 0.5)' : 'rgba(61, 61, 61, 1)',
+            }}
+            transition={{ duration: 0.4, ease: 'easeInOut' }}
+          >
+            {/* Color-blended bg layer, always at 50% opacity. */}
+            <div
+              className="absolute inset-0 pointer-events-none"
+              style={{
+                backgroundImage: `url(${thumb.url})`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                backgroundColor: FADE_TINT,
+                backgroundBlendMode: 'color',
+                opacity: 0.5,
+              }}
+            />
+            {/* Foreground image fades out to reveal the bg layer. Blend mode
+                never changes, so the transition is smooth. */}
+            <motion.img
               src={thumb.url}
               alt={thumb.alt ?? project.title}
               draggable={false}
-              className="w-full h-full object-cover select-none"
+              className="w-full h-full object-cover select-none relative"
+              animate={{ opacity: faded ? 0 : 1 }}
+              transition={{ duration: 0.4, ease: 'easeInOut' }}
             />
-          </div>
+          </motion.div>
         ) : (
           <div className="border border-white outline-2 outline-[#3D3D3D] bg-[#b3a488] aspect-[16/9] h-full" />
         )}
@@ -66,6 +97,7 @@ function PathTile({
   itemSpacing,
   offPad,
   onSelect,
+  faded,
   innerRef,
 }: {
   project: Project
@@ -77,6 +109,7 @@ function PathTile({
   itemSpacing: number
   offPad: number
   onSelect: (id: number) => void
+  faded: boolean
   innerRef?: (el: HTMLDivElement | null) => void
 }) {
   // Virtual position v walks a closed serpentine path of length totalLen,
@@ -94,11 +127,8 @@ function PathTile({
   })
 
   return (
-    <motion.div
-      ref={innerRef}
-      style={{ x, position: 'absolute', top: 0, left: 0, height: '100%' }}
-    >
-      <Tile project={project} onSelect={onSelect} />
+    <motion.div ref={innerRef} style={{ x, position: 'absolute', top: 0, left: 0, height: '100%' }}>
+      <Tile project={project} onSelect={onSelect} faded={faded} />
     </motion.div>
   )
 }
@@ -106,13 +136,22 @@ function PathTile({
 export function ProjectConveyor({
   projects,
   onSelect,
+  faded = false,
 }: {
   projects: Project[]
   onSelect: (id: number) => void
+  faded?: boolean
 }) {
   const containerRef = useRef<HTMLDivElement | null>(null)
+
+  const [wheelStep, setWheelStep] = useState(DEFAULT_WHEEL_STEP)
+  const [stiffness, setStiffness] = useState(DEFAULT_SPRING.stiffness)
+  const [damping, setDamping] = useState(DEFAULT_SPRING.damping)
+  const [mass, setMass] = useState(DEFAULT_SPRING.mass)
+  const [padFactor, setPadFactor] = useState(DEFAULT_PAD_FACTOR)
+
   const scrollTarget = useMotionValue(0)
-  const scroll = useSpring(scrollTarget, SPRING)
+  const scroll = useSpring(scrollTarget, { stiffness, damping, mass })
 
   const [rowEl, setRowEl] = useState<HTMLDivElement | null>(null)
   const [tileEl, setTileEl] = useState<HTMLDivElement | null>(null)
@@ -142,11 +181,11 @@ export function ProjectConveyor({
     if (!el) return
     const onWheel = (e: WheelEvent) => {
       e.preventDefault()
-      scrollTarget.set(scrollTarget.get() + (e.deltaY + e.deltaX) * WHEEL_STEP)
+      scrollTarget.set(scrollTarget.get() + (e.deltaY + e.deltaX) * wheelStep)
     }
     el.addEventListener('wheel', onWheel, { passive: false })
     return () => el.removeEventListener('wheel', onWheel)
-  }, [scrollTarget])
+  }, [scrollTarget, wheelStep])
 
   if (projects.length === 0) return null
 
@@ -155,37 +194,177 @@ export function ProjectConveyor({
   // Pack items tightly when N supports it; otherwise stretch to keep
   // off-screen pad >= tileWidth so row-to-row teleports stay invisible.
   const baseSegLen = (N * tilePitch) / ROW_COUNT
-  const minSegLen = rowWidth + 2 * tileWidth
+  const minSegLen = rowWidth + 2 * tileWidth * padFactor
   const segLen = Math.max(baseSegLen, minSegLen)
   const totalLen = ROW_COUNT * segLen
   const itemSpacing = totalLen / N
   const offPad = (segLen - rowWidth) / 2
 
   return (
-    <div ref={containerRef} className="flex h-full flex-col justify-center gap-4 py-4">
-      {[0, 1, 2].map((rowIdx) => (
-        <div
-          key={rowIdx}
-          ref={rowIdx === 0 ? setRowEl : undefined}
-          className="overflow-hidden h-1/4 relative"
+    <>
+      <div ref={containerRef} className="flex h-full flex-col justify-center gap-4 py-4">
+        {[0, 1, 2].map((rowIdx) => (
+          <div
+            key={rowIdx}
+            ref={rowIdx === 0 ? setRowEl : undefined}
+            className="overflow-hidden h-1/4 relative"
+          >
+            {projects.map((project, i) => (
+              <PathTile
+                key={project.id}
+                project={project}
+                index={i}
+                rowIdx={rowIdx}
+                scroll={scroll}
+                segLen={segLen}
+                totalLen={totalLen}
+                itemSpacing={itemSpacing}
+                offPad={offPad}
+                onSelect={onSelect}
+                faded={faded}
+                innerRef={rowIdx === 0 && i === 0 ? setTileEl : undefined}
+              />
+            ))}
+          </div>
+        ))}
+      </div>
+      <ConveyorDevPanel
+        wheelStep={wheelStep}
+        setWheelStep={setWheelStep}
+        stiffness={stiffness}
+        setStiffness={setStiffness}
+        damping={damping}
+        setDamping={setDamping}
+        mass={mass}
+        setMass={setMass}
+        padFactor={padFactor}
+        setPadFactor={setPadFactor}
+      />
+    </>
+  )
+}
+
+function ConveyorDevPanel({
+  wheelStep,
+  setWheelStep,
+  stiffness,
+  setStiffness,
+  damping,
+  setDamping,
+  mass,
+  setMass,
+  padFactor,
+  setPadFactor,
+}: {
+  wheelStep: number
+  setWheelStep: (v: number) => void
+  stiffness: number
+  setStiffness: (v: number) => void
+  damping: number
+  setDamping: (v: number) => void
+  mass: number
+  setMass: (v: number) => void
+  padFactor: number
+  setPadFactor: (v: number) => void
+}) {
+  const [open, setOpen] = useState(true)
+  const reset = () => {
+    setWheelStep(DEFAULT_WHEEL_STEP)
+    setStiffness(DEFAULT_SPRING.stiffness)
+    setDamping(DEFAULT_SPRING.damping)
+    setMass(DEFAULT_SPRING.mass)
+    setPadFactor(DEFAULT_PAD_FACTOR)
+  }
+  return (
+    <div
+      className="fixed bottom-4 right-4 z-[100] bg-white/95 outline-1 outline-[#3D3D3D] drop-shadow-md p-3 text-xs font-mono select-none"
+      style={{ width: 240 }}
+    >
+      <div className="flex justify-between items-center mb-2">
+        <button
+          type="button"
+          onClick={() => setOpen((o) => !o)}
+          className="cursor-pointer text-left flex-1"
         >
-          {projects.map((project, i) => (
-            <PathTile
-              key={project.id}
-              project={project}
-              index={i}
-              rowIdx={rowIdx}
-              scroll={scroll}
-              segLen={segLen}
-              totalLen={totalLen}
-              itemSpacing={itemSpacing}
-              offPad={offPad}
-              onSelect={onSelect}
-              innerRef={rowIdx === 0 && i === 0 ? setTileEl : undefined}
-            />
-          ))}
+          conveyor {open ? '▾' : '▸'}
+        </button>
+        {open && (
+          <button type="button" onClick={reset} className="cursor-pointer underline">
+            reset
+          </button>
+        )}
+      </div>
+      {open && (
+        <div className="space-y-2">
+          <DevSlider
+            label="wheel step"
+            value={wheelStep}
+            onChange={setWheelStep}
+            min={0.05}
+            max={10}
+            step={0.05}
+          />
+          <DevSlider
+            label="stiffness"
+            value={stiffness}
+            onChange={setStiffness}
+            min={1}
+            max={400}
+            step={1}
+          />
+          <DevSlider
+            label="damping"
+            value={damping}
+            onChange={setDamping}
+            min={1}
+            max={100}
+            step={1}
+          />
+          <DevSlider label="mass" value={mass} onChange={setMass} min={0.1} max={5} step={0.1} />
+          <DevSlider
+            label="pad ×tile"
+            value={padFactor}
+            onChange={setPadFactor}
+            min={0}
+            max={3}
+            step={0.05}
+          />
         </div>
-      ))}
+      )}
     </div>
+  )
+}
+
+function DevSlider({
+  label,
+  value,
+  onChange,
+  min,
+  max,
+  step,
+}: {
+  label: string
+  value: number
+  onChange: (v: number) => void
+  min: number
+  max: number
+  step: number
+}) {
+  return (
+    <label className="block">
+      <div className="flex justify-between">
+        <span>{label}</span>
+        <span>{value.toFixed(step < 1 ? 2 : 0)}</span>
+      </div>
+      <input
+        type="range"
+        min={min}
+        max={max}
+        step={step}
+        value={value}
+        onChange={(e) => onChange(Number(e.target.value))}
+        className="w-full"
+      />
+    </label>
   )
 }

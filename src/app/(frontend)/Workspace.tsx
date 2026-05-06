@@ -247,18 +247,23 @@ export function Workspace({ projects }: { projects: Project[] }) {
   return (
     <div className="h-screen">
       <div className="relative h-full overflow-hidden">
-        {/* Grid view */}
+        {/* Grid view — kept mounted across detail open/close so conveyor scroll state is preserved. */}
         <AnimatePresence>
-          {!transitioning && roomEntered && selectedId == null && (
+          {!transitioning && roomEntered && (
             <motion.div
               key="grid"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ type: 'spring', stiffness: 100, damping: 30 }}
+              style={{ pointerEvents: selectedId == null ? 'auto' : 'none' }}
               className="absolute inset-0"
             >
-              <ProjectConveyor projects={projects} onSelect={handleSelectProject} />
+              <ProjectConveyor
+                projects={projects}
+                onSelect={handleSelectProject}
+                faded={selectedId != null}
+              />
             </motion.div>
           )}
         </AnimatePresence>
