@@ -1,7 +1,6 @@
 import { getPayload } from 'payload'
 import config from '@/payload.config'
 import { Workspace } from './Workspace'
-import { RoomScene } from './components/RoomScene'
 import './styles.css'
 
 export default async function HomePage() {
@@ -16,8 +15,8 @@ export default async function HomePage() {
   })
 
   return (
-    <RoomScene>
+    <div className="dot-grid-bg w-full h-full">
       <Workspace projects={projects} />
-    </RoomScene>
+    </div>
   )
 }

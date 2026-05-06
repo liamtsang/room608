@@ -6,14 +6,11 @@ import { RichText } from '@payloadcms/richtext-lexical/react'
 import type { Media, Project } from '@/payload-types'
 import { Timeline } from './components/Timeline/Timeline'
 import { ProjectConveyor } from './components/ProjectConveyor'
-import { ProjectDetail } from './components/ProjectDetail'
 import { usePageTransition } from './components/TransitionContext'
-import { useRoom } from './components/RoomContext'
 import { MobileNav } from './components/MobileNav'
 
 export function Workspace({ projects }: { projects: Project[] }) {
   const { transitioning } = usePageTransition()
-  const { roomEntered } = useRoom()
   // Desktop starts on the grid (selectedId = null). Mobile auto-selects first project below.
   const [selectedId, setSelectedId] = useState<number | null>(null)
   const [direction, setDirection] = useState(0) // -1 = left, 1 = right
@@ -96,7 +93,7 @@ export function Workspace({ projects }: { projects: Project[] }) {
       <div className="flex h-screen flex-col">
         {/* Timeline at top */}
         <AnimatePresence>
-          {!transitioning && roomEntered && (
+          {!transitioning && (
             <motion.div
               initial={{ y: '-100%', opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
@@ -247,52 +244,24 @@ export function Workspace({ projects }: { projects: Project[] }) {
   return (
     <div className="h-screen">
       <div className="relative h-full overflow-hidden">
-        {/* Grid view — kept mounted across detail open/close so conveyor scroll state is preserved. */}
+        {/* Grid view — kept mounted across detail open/close so conveyor scroll state is preserved.
+            Selection now slides a panel out from behind the clicked tile inside the conveyor. */}
         <AnimatePresence>
-          {!transitioning && roomEntered && (
+          {!transitioning && (
             <motion.div
               key="grid"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ type: 'spring', stiffness: 100, damping: 30 }}
-              style={{ pointerEvents: selectedId == null ? 'auto' : 'none' }}
               className="absolute inset-0"
             >
               <ProjectConveyor
                 projects={projects}
                 onSelect={handleSelectProject}
-                faded={selectedId != null}
+                onClose={handleCloseDetail}
+                selectedId={selectedId}
               />
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Detail view */}
-        <AnimatePresence>
-          {selected && (
-            <motion.div
-              key={`detail-wrapper-${selected.id}`}
-              className="absolute inset-0 bg-transparent"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={(e) => {
-                if (e.target === e.currentTarget) handleCloseDetail()
-              }}
-              transition={{ type: 'spring', stiffness: 400, damping: 35 }}
-            >
-              {/* Close button */}
-              <button
-                type="button"
-                onClick={handleCloseDetail}
-                aria-label="Close"
-                className="absolute top-4 right-4 z-50 bg-[#C6B79C] outline-1 outline-[#3D3D3D] drop-shadow-md w-10 h-10 flex items-center justify-center text-lg cursor-pointer hover:scale-105 transition-transform"
-              >
-                ×
-              </button>
-
-              <ProjectDetail project={selected} />
             </motion.div>
           )}
         </AnimatePresence>

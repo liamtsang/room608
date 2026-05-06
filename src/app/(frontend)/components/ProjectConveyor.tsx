@@ -1,7 +1,17 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { motion, useMotionValue, useSpring, useTransform, type MotionValue } from 'motion/react'
+import {
+  AnimatePresence,
+  animate,
+  motion,
+  usePresence,
+  useMotionValue,
+  useSpring,
+  useTransform,
+  type MotionValue,
+} from 'motion/react'
+import { RichText } from '@payloadcms/richtext-lexical/react'
 import type { Media, Project } from '@/payload-types'
 
 const ROW_COUNT = 3
@@ -15,6 +25,11 @@ const DEFAULT_SPRING = { stiffness: 158, damping: 28, mass: 0.4 }
 const DEFAULT_PAD_FACTOR = 1
 // Park hidden tiles far enough left that they can't bleed into a neighbour.
 const OFFSCREEN = -99999
+// Intro: tiles file along the serpentine path as if scrolled forward.
+const INTRO_DURATION = 6
+const INTRO_EASE = [0.16, 1, 0.3, 1] as const
+// Slide-out detail panel motion.
+const SLIDE_SPRING = { type: 'spring' as const, stiffness: 200, damping: 25 }
 
 function firstImage(project: Project): Media | null {
   const images = (project.images ?? []).filter((img): img is Media => typeof img !== 'number')
@@ -31,28 +46,29 @@ const FADE_TINT = '#C6B79C'
 
 function Tile({
   project,
-  onSelect,
+  onClick,
   faded,
 }: {
   project: Project
-  onSelect: (id: number) => void
+  onClick: () => void
   faded: boolean
 }) {
   const thumb = firstImage(project)
   return (
     <motion.button
       type="button"
-      onClick={() => onSelect(project.id)}
-      whileHover={{ scale: 1.04, zIndex: 2 }}
+      onClick={onClick}
+      whileHover={{ scale: 1.01, zIndex: 2 }}
       whileTap={{ scale: 0.97 }}
       className="cursor-pointer text-left h-full"
     >
       <div className="p-2 flex flex-col gap-2 h-full">
         {thumb?.url ? (
           <motion.div
-            className="overflow-hidden border border-white outline-2 aspect-[16/9] h-full relative"
+            className="overflow-hidden border outline-2 aspect-[16/9] h-full relative"
             animate={{
-              outlineColor: faded ? 'rgba(61, 61, 61, 0.5)' : 'rgba(61, 61, 61, 1)',
+              borderColor: faded ? 'rgba(255, 255, 255, 0)' : 'rgba(255, 255, 255, 1)',
+              outlineColor: faded ? 'rgba(61, 61, 61, 0)' : 'rgba(61, 61, 61, 1)',
             }}
             transition={{ duration: 0.4, ease: 'easeInOut' }}
           >
@@ -92,33 +108,48 @@ function PathTile({
   index,
   rowIdx,
   scroll,
+  introProgress,
   segLen,
   totalLen,
   itemSpacing,
   offPad,
+  rowWidth,
+  tilePitch,
   onSelect,
-  faded,
+  onClose,
+  selected,
+  gridFaded,
   innerRef,
 }: {
   project: Project
   index: number
   rowIdx: number
   scroll: MotionValue<number>
+  introProgress: MotionValue<number>
   segLen: number
   totalLen: number
   itemSpacing: number
   offPad: number
+  rowWidth: number
+  tilePitch: number
   onSelect: (id: number) => void
-  faded: boolean
+  onClose?: () => void
+  selected: boolean
+  gridFaded: boolean
   innerRef?: (el: HTMLDivElement | null) => void
 }) {
   // Virtual position v walks a closed serpentine path of length totalLen,
   // split into ROW_COUNT segments of segLen each. When v crosses a segment
   // boundary the tile teleports to the next row at its off-screen edge —
   // invisible because the off-screen pad is wider than a tile.
-  const x = useTransform(scroll, (s) => {
+  //
+  // During intro (introProgress < 1), v is shifted by (p-1)*totalLen and
+  // mod is skipped so tiles can sit at v < 0 (off-screen left of row 0)
+  // and slide rightward into resting positions as if scrolled forward.
+  const x = useTransform([scroll, introProgress], ([s, p]: number[]) => {
     if (segLen <= 0 || totalLen <= 0 || itemSpacing <= 0) return OFFSCREEN
-    const v = mod(index * itemSpacing + s, totalLen)
+    let v = index * itemSpacing + s + (p - 1) * totalLen
+    if (p >= 0.9999) v = mod(v, totalLen)
     const itemRow = Math.floor(v / segLen)
     if (itemRow !== rowIdx) return OFFSCREEN
     const localV = v - itemRow * segLen
@@ -126,22 +157,140 @@ function PathTile({
     return isLTR ? localV - offPad : segLen - localV - offPad
   })
 
+  const tileFaded = gridFaded && !selected
+
+  // While the panel is mounted (including its exit slide-back), keep the
+  // tile above it so the panel slides back behind the image, not over it.
+  const [panelMounted, setPanelMounted] = useState(false)
+  useEffect(() => {
+    if (selected) setPanelMounted(true)
+  }, [selected])
+
+  // When something is already selected, clicks on any tile close — never
+  // open another. Without this, clicking a faded tile would simultaneously
+  // close the current panel and open a new one.
+  const handleTileClick = () => {
+    if (gridFaded) onClose?.()
+    else onSelect(project.id)
+  }
+
   return (
-    <motion.div ref={innerRef} style={{ x, position: 'absolute', top: 0, left: 0, height: '100%' }}>
-      <Tile project={project} onSelect={onSelect} faded={faded} />
+    <>
+      <AnimatePresence>
+        {selected && rowWidth > 0 && tilePitch > 0 && (
+          <SlidePanel
+            key={`panel-${project.id}`}
+            project={project}
+            tileX={x}
+            rowWidth={rowWidth}
+            tilePitch={tilePitch}
+            onExitComplete={() => setPanelMounted(false)}
+          />
+        )}
+      </AnimatePresence>
+      <motion.div
+        ref={innerRef}
+        style={{
+          x,
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          height: '100%',
+          zIndex: panelMounted ? 2 : 0,
+        }}
+      >
+        <Tile project={project} onClick={handleTileClick} faded={tileFaded} />
+      </motion.div>
+    </>
+  )
+}
+
+// Slide-out detail panel: rides on the selected tile's x, plus an animated
+// offset that springs to ±tilePitch (chosen by which side of the row the
+// tile sits on) so the panel emerges from behind the tile into the next
+// tile's slot. Uses usePresence to reverse the slide on exit.
+function SlidePanel({
+  project,
+  tileX,
+  rowWidth,
+  tilePitch,
+  onExitComplete,
+}: {
+  project: Project
+  tileX: MotionValue<number>
+  rowWidth: number
+  tilePitch: number
+  onExitComplete?: () => void
+}) {
+  const [isPresent, safeToRemove] = usePresence()
+  const [dir] = useState<1 | -1>(() => (tileX.get() + tilePitch / 2 < rowWidth / 2 ? 1 : -1))
+  const offset = useMotionValue(0)
+  const x = useTransform([tileX, offset], ([t, o]: number[]) => t + o)
+
+  useEffect(() => {
+    if (isPresent) {
+      const ctrl = animate(offset, dir * tilePitch, SLIDE_SPRING)
+      return () => ctrl.stop()
+    }
+    const ctrl = animate(offset, 0, SLIDE_SPRING)
+    ctrl.then(() => {
+      onExitComplete?.()
+      safeToRemove?.()
+    })
+    return () => ctrl.stop()
+  }, [isPresent, dir, tilePitch, offset, safeToRemove, onExitComplete])
+
+  return (
+    <motion.div
+      style={{
+        x,
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        height: '100%',
+        zIndex: 1,
+      }}
+    >
+      <DetailPanel project={project} />
     </motion.div>
+  )
+}
+
+function directorName(project: Project): string {
+  const credits = project.credits ?? []
+  return credits.find((c) => c.role.toLowerCase() === 'director')?.name ?? credits[0]?.name ?? '—'
+}
+
+function DetailPanel({ project }: { project: Project }) {
+  return (
+    <div className="text-left h-full pointer-events-auto">
+      <div className="p-2 flex flex-col gap-2 h-full">
+        <div className="overflow-hidden border border-white outline-2 outline-[#3D3D3D] aspect-[16/9] h-full bg-[#C6B79C] p-3 flex flex-col gap-2">
+          <div className="text-sm font-bold leading-tight">{project.title}</div>
+          <div className="text-xs opacity-80">{directorName(project)}</div>
+          {project.description && (
+            <div className="text-xs flex-1 overflow-y-auto pr-1">
+              <RichText data={project.description} />
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
   )
 }
 
 export function ProjectConveyor({
   projects,
   onSelect,
-  faded = false,
+  onClose,
+  selectedId = null,
 }: {
   projects: Project[]
   onSelect: (id: number) => void
-  faded?: boolean
+  onClose?: () => void
+  selectedId?: number | null
 }) {
+  const gridFaded = selectedId != null
   const containerRef = useRef<HTMLDivElement | null>(null)
 
   const [wheelStep, setWheelStep] = useState(DEFAULT_WHEEL_STEP)
@@ -152,6 +301,8 @@ export function ProjectConveyor({
 
   const scrollTarget = useMotionValue(0)
   const scroll = useSpring(scrollTarget, { stiffness, damping, mass })
+  const introProgress = useMotionValue(0)
+  const introStartedRef = useRef(false)
 
   const [rowEl, setRowEl] = useState<HTMLDivElement | null>(null)
   const [tileEl, setTileEl] = useState<HTMLDivElement | null>(null)
@@ -181,11 +332,33 @@ export function ProjectConveyor({
     if (!el) return
     const onWheel = (e: WheelEvent) => {
       e.preventDefault()
+      // Selection freezes the conveyor — wheel events are swallowed so the
+      // detail panel stays anchored to its tile.
+      if (selectedId != null) return
       scrollTarget.set(scrollTarget.get() + (e.deltaY + e.deltaX) * wheelStep)
     }
     el.addEventListener('wheel', onWheel, { passive: false })
     return () => el.removeEventListener('wheel', onWheel)
-  }, [scrollTarget, wheelStep])
+  }, [scrollTarget, wheelStep, selectedId])
+
+  // When selection happens, snap the spring's target to the current value so
+  // any in-flight scroll motion stops drifting under the detail panel.
+  useEffect(() => {
+    if (selectedId != null) scrollTarget.set(scroll.get())
+  }, [selectedId, scrollTarget, scroll])
+
+  // Kick off the file-in intro once dimensions are known. introProgress 0→1
+  // shifts every tile from off-screen left to its resting serpentine position.
+  useEffect(() => {
+    if (introStartedRef.current) return
+    if (rowWidth <= 0 || tileWidth <= 0) return
+    introStartedRef.current = true
+    const controls = animate(introProgress, 1, {
+      duration: INTRO_DURATION,
+      ease: INTRO_EASE,
+    })
+    return () => controls.stop()
+  }, [rowWidth, tileWidth, introProgress])
 
   if (projects.length === 0) return null
 
@@ -202,12 +375,22 @@ export function ProjectConveyor({
 
   return (
     <>
-      <div ref={containerRef} className="flex h-full flex-col justify-center gap-4 py-4">
+      <div
+        ref={containerRef}
+        className="flex h-full flex-col justify-center gap-4 py-4"
+        onClick={(e) => {
+          // Click on empty conveyor space (not on a tile) closes the detail.
+          if (selectedId != null && e.target === e.currentTarget && onClose) onClose()
+        }}
+      >
         {[0, 1, 2].map((rowIdx) => (
           <div
             key={rowIdx}
             ref={rowIdx === 0 ? setRowEl : undefined}
             className="overflow-hidden h-1/4 relative"
+            onClick={(e) => {
+              if (selectedId != null && e.target === e.currentTarget && onClose) onClose()
+            }}
           >
             {projects.map((project, i) => (
               <PathTile
@@ -216,12 +399,17 @@ export function ProjectConveyor({
                 index={i}
                 rowIdx={rowIdx}
                 scroll={scroll}
+                introProgress={introProgress}
                 segLen={segLen}
                 totalLen={totalLen}
                 itemSpacing={itemSpacing}
                 offPad={offPad}
+                rowWidth={rowWidth}
+                tilePitch={tilePitch}
                 onSelect={onSelect}
-                faded={faded}
+                onClose={onClose}
+                selected={project.id === selectedId}
+                gridFaded={gridFaded}
                 innerRef={rowIdx === 0 && i === 0 ? setTileEl : undefined}
               />
             ))}
