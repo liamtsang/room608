@@ -135,6 +135,7 @@ function PathTile({
   offPad,
   rowWidth,
   tilePitch,
+  rowSkew,
   onSelect,
   onClose,
   selected,
@@ -152,6 +153,7 @@ function PathTile({
   offPad: number
   rowWidth: number
   tilePitch: number
+  rowSkew: MotionValue<number>
   onSelect: (id: number) => void
   onClose?: () => void
   selected: boolean
@@ -179,6 +181,16 @@ function PathTile({
 
   const tileFaded = gridFaded && !selected
 
+  // Selecting an item un-shears it (and its slide-out info panel): counter the
+  // row's skew so the focused tile reads as a normal rectangle. `unskew`
+  // animates 0→1 on open (eases flat) and back to 0 on close (re-shears).
+  const unskew = useMotionValue(0)
+  useEffect(() => {
+    const controls = animate(unskew, selected ? 1 : 0, { duration: 0.4, ease: 'easeInOut' })
+    return () => controls.stop()
+  }, [selected, unskew])
+  const counterSkew = useTransform([rowSkew, unskew], ([rs, u]: number[]) => -rs * u)
+
   // While the panel is mounted (including its exit slide-back), keep the
   // tile above it so the panel slides back behind the image, not over it.
   const [panelMounted, setPanelMounted] = useState(false)
@@ -202,6 +214,7 @@ function PathTile({
             key={`panel-${project.id}`}
             project={project}
             tileX={x}
+            counterSkew={counterSkew}
             rowWidth={rowWidth}
             tilePitch={tilePitch}
             onExitComplete={() => setPanelMounted(false)}
@@ -212,6 +225,7 @@ function PathTile({
         ref={innerRef}
         style={{
           x,
+          skewY: counterSkew,
           position: 'absolute',
           top: 0,
           left: 0,
@@ -232,12 +246,14 @@ function PathTile({
 function SlidePanel({
   project,
   tileX,
+  counterSkew,
   rowWidth,
   tilePitch,
   onExitComplete,
 }: {
   project: Project
   tileX: MotionValue<number>
+  counterSkew: MotionValue<number>
   rowWidth: number
   tilePitch: number
   onExitComplete?: () => void
@@ -264,6 +280,7 @@ function SlidePanel({
     <motion.div
       style={{
         x,
+        skewY: counterSkew,
         position: 'absolute',
         top: 0,
         left: 0,
@@ -299,26 +316,16 @@ function DetailPanel({ project }: { project: Project }) {
   )
 }
 
-// One serpentine strip. Skews on the Y axis as a function of smoothed scroll
-// velocity. Sign alternates per row to match the LTR/RTL serpentine direction,
-// so the rows shear into the opposing-diagonal zigzag while scrolling.
-function ConveyorRow({
-  rowIdx,
-  velocity,
-  baseSkew,
-  maxSkew,
-  rowRef,
-  onBackgroundClick,
-  children,
-}: {
-  rowIdx: number
-  velocity: MotionValue<number>
-  baseSkew: number
-  maxSkew: number
-  rowRef?: (el: HTMLDivElement | null) => void
-  onBackgroundClick: (e: React.MouseEvent<HTMLDivElement>) => void
-  children: React.ReactNode
-}) {
+// Per-row serpentine skew, driven by smoothed scroll velocity. Sign alternates
+// per row to match the LTR/RTL direction, so the rows shear into the opposing-
+// diagonal zigzag while scrolling. Returned as a motion value so the selected
+// tile can counter it (see PathTile's un-skew).
+function useRowSkew(
+  rowIdx: number,
+  velocity: MotionValue<number>,
+  baseSkew: number,
+  maxSkew: number,
+): MotionValue<number> {
   const dir = rowIdx % 2 === 0 ? 1 : -1
   // Mirror the numeric tunables into motion values so the skew recomputes (and
   // the dev panel updates the resting shear live) without a velocity change.
@@ -330,11 +337,26 @@ function ConveyorRow({
   useEffect(() => {
     maxMv.set(maxSkew)
   }, [maxSkew, maxMv])
-  const skewY = useTransform([velocity, baseMv, maxMv], ([v, base, mx]: number[]) => {
+  return useTransform([velocity, baseMv, maxMv], ([v, base, mx]: number[]) => {
     const clamped = Math.max(-SKEW_VELOCITY_RANGE, Math.min(SKEW_VELOCITY_RANGE, v))
     const velSkew = (clamped / SKEW_VELOCITY_RANGE) * mx
     return (base + velSkew) * dir
   })
+}
+
+// One serpentine strip — applies the precomputed per-row skew to the whole
+// strip of tiles.
+function ConveyorRow({
+  skewY,
+  rowRef,
+  onBackgroundClick,
+  children,
+}: {
+  skewY: MotionValue<number>
+  rowRef?: (el: HTMLDivElement | null) => void
+  onBackgroundClick: (e: React.MouseEvent<HTMLDivElement>) => void
+  children: React.ReactNode
+}) {
   return (
     <motion.div
       ref={rowRef}
@@ -381,6 +403,13 @@ export function ProjectConveyor({
     damping: SKEW_SPRING_DAMPING,
     mass: SKEW_SPRING_MASS,
   })
+  // One skew per row (ROW_COUNT is fixed at 3, so these hook calls are stable).
+  // Shared with both the row wrapper and its tiles, so the selected tile can
+  // counter its row's skew to read flat.
+  const rowSkew0 = useRowSkew(0, smoothVelocity, baseSkew, maxSkew)
+  const rowSkew1 = useRowSkew(1, smoothVelocity, baseSkew, maxSkew)
+  const rowSkew2 = useRowSkew(2, smoothVelocity, baseSkew, maxSkew)
+  const rowSkews = [rowSkew0, rowSkew1, rowSkew2]
   const introProgress = useMotionValue(0)
   const introStartedRef = useRef(false)
 
@@ -467,10 +496,7 @@ export function ProjectConveyor({
         {[0, 1, 2].map((rowIdx) => (
           <ConveyorRow
             key={rowIdx}
-            rowIdx={rowIdx}
-            velocity={smoothVelocity}
-            baseSkew={baseSkew}
-            maxSkew={maxSkew}
+            skewY={rowSkews[rowIdx]}
             rowRef={rowIdx === 0 ? setRowEl : undefined}
             onBackgroundClick={(e) => {
               if (selectedId != null && e.target === e.currentTarget && onClose) onClose()
@@ -490,6 +516,7 @@ export function ProjectConveyor({
                 offPad={offPad}
                 rowWidth={rowWidth}
                 tilePitch={tilePitch}
+                rowSkew={rowSkews[rowIdx]}
                 onSelect={onSelect}
                 onClose={onClose}
                 selected={project.id === selectedId}
