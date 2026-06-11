@@ -21,7 +21,7 @@ export function MobileHamburger() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="fixed top-4 right-4 z-40 bg-[#282828] border-2 border-[#C6B79C] outline outline-black p-2 flex flex-col gap-[3px]"
+        className="fixed top-4 right-8 z-40 bg-[#282828] border-2 border-[#C6B79C] outline outline-black p-2 flex flex-col gap-[3px]"
         aria-label="Open menu"
       >
         <span className="block w-5 h-[2px] bg-white" />
