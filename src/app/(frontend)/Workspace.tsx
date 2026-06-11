@@ -6,6 +6,7 @@ import { RichText } from '@payloadcms/richtext-lexical/react'
 import type { Media, Project } from '@/payload-types'
 import { ProjectConveyor } from './components/ProjectConveyor'
 import { usePageTransition } from './components/TransitionContext'
+import { useViewfinder } from './components/ViewfinderContext'
 import { MobileGrid } from './components/MobileGrid'
 import { MobileHamburger } from './components/MobileHamburger'
 
@@ -62,6 +63,16 @@ export function Workspace({ projects }: { projects: Project[] }) {
       ),
     [selected],
   )
+
+  // Feed the layout-level viewfinder grid. Desktop only — mobile has its own
+  // full-screen detail view, so we never light up the viewfinder there.
+  const { setSelected: setViewfinderSelected, setOnClose } = useViewfinder()
+  useEffect(() => {
+    setViewfinderSelected(isMobile ? null : selected)
+  }, [selected, isMobile, setViewfinderSelected])
+  useEffect(() => {
+    setOnClose(handleCloseDetail)
+  }, [handleCloseDetail, setOnClose])
 
   if (isMobile) {
     return (

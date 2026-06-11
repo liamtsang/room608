@@ -3,6 +3,8 @@ import './styles.css'
 import Nav from './components/nav'
 import PageTransition from './components/PageTransition'
 import { RoomProvider } from './components/RoomContext'
+import { ViewfinderProvider } from './components/ViewfinderContext'
+import { Viewfinder } from './components/Viewfinder'
 
 export const metadata = {
   description: 'Room 608',
@@ -25,23 +27,15 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
     <html lang="en">
       <body>
         <RoomProvider>
-          <div className="block h-[100dvh]">
-            <div className="fixed h-dvh w-dvw grid grid-cols-3 grid-rows-3 *:border-black *:border-1 z-10 pointer-events-none">
-              <div></div>
-              <div></div>
-              <div></div>
-              <div></div>
-              <div></div>
-              <div></div>
-              <div></div>
-              <div></div>
-              <div></div>
+          <ViewfinderProvider>
+            <div className="block h-[100dvh]">
+              <Viewfinder />
+              <main className="relative flex-1 h-[100dvh] overflow-hidden">
+                <PageTransition>{children}</PageTransition>
+              </main>
+              <Nav />
             </div>
-            <main className="relative flex-1 h-[100dvh] overflow-hidden">
-              <PageTransition>{children}</PageTransition>
-            </main>
-            <Nav />
-          </div>
+          </ViewfinderProvider>
         </RoomProvider>
       </body>
     </html>
