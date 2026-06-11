@@ -15,7 +15,7 @@ export default async function HomePage() {
   })
 
   return (
-    <div className="dot-grid-bg w-full h-full">
+    <div className="bg-white w-full h-full">
       <Workspace projects={projects} />
     </div>
   )

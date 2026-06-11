@@ -9,6 +9,7 @@ import {
   useMotionValue,
   useSpring,
   useTransform,
+  useVelocity,
   type MotionValue,
 } from 'motion/react'
 import { RichText } from '@payloadcms/richtext-lexical/react'
@@ -30,6 +31,25 @@ const INTRO_DURATION = 6
 const INTRO_EASE = [0.16, 1, 0.3, 1] as const
 // Slide-out detail panel motion.
 const SLIDE_SPRING = { type: 'spring' as const, stiffness: 200, damping: 25 }
+// Scroll-velocity → row skew. Faster/harder scrolling shears the rows more,
+// giving a sense of motion; when the scroll spring settles the skew relaxes
+// back to flat. Velocity (px/s) at/above SKEW_VELOCITY_RANGE maps to the
+// configured max angle; the raw velocity is smoothed so the shear doesn't
+// jitter on discrete wheel ticks.
+// Permanent resting shear applied to every row (alternating sign per row) so
+// the conveyor sits in the reference's zigzag even when idle.
+const DEFAULT_BASE_SKEW = 8
+// Extra shear added on top of the base while scrolling, scaled by velocity.
+const DEFAULT_MAX_SKEW = 8
+const SKEW_VELOCITY_RANGE = 6000
+// Stiffness of the velocity-smoothing spring. Higher = the skew snaps back to
+// flat faster when scrolling stops (the "return to base" speed).
+const DEFAULT_SKEW_RETURN = 120
+const SKEW_SPRING_DAMPING = 24
+const SKEW_SPRING_MASS = 0.5
+// Vertical gap (px) between the three rows. Lower / negative values let the
+// skewed rows overlap more. 16 == the original gap-4.
+const DEFAULT_ROW_GAP = 16
 
 function firstImage(project: Project): Media | null {
   const images = (project.images ?? []).filter((img): img is Media => typeof img !== 'number')
@@ -279,6 +299,54 @@ function DetailPanel({ project }: { project: Project }) {
   )
 }
 
+// One serpentine strip. Skews on the Y axis as a function of smoothed scroll
+// velocity. Sign alternates per row to match the LTR/RTL serpentine direction,
+// so the rows shear into the opposing-diagonal zigzag while scrolling.
+function ConveyorRow({
+  rowIdx,
+  velocity,
+  baseSkew,
+  maxSkew,
+  rowRef,
+  onBackgroundClick,
+  children,
+}: {
+  rowIdx: number
+  velocity: MotionValue<number>
+  baseSkew: number
+  maxSkew: number
+  rowRef?: (el: HTMLDivElement | null) => void
+  onBackgroundClick: (e: React.MouseEvent<HTMLDivElement>) => void
+  children: React.ReactNode
+}) {
+  const dir = rowIdx % 2 === 0 ? 1 : -1
+  // Mirror the numeric tunables into motion values so the skew recomputes (and
+  // the dev panel updates the resting shear live) without a velocity change.
+  const baseMv = useMotionValue(baseSkew)
+  const maxMv = useMotionValue(maxSkew)
+  useEffect(() => {
+    baseMv.set(baseSkew)
+  }, [baseSkew, baseMv])
+  useEffect(() => {
+    maxMv.set(maxSkew)
+  }, [maxSkew, maxMv])
+  const skewY = useTransform([velocity, baseMv, maxMv], ([v, base, mx]: number[]) => {
+    const clamped = Math.max(-SKEW_VELOCITY_RANGE, Math.min(SKEW_VELOCITY_RANGE, v))
+    const velSkew = (clamped / SKEW_VELOCITY_RANGE) * mx
+    return (base + velSkew) * dir
+  })
+  return (
+    <motion.div
+      ref={rowRef}
+      className="overflow-hidden h-1/4 relative"
+      style={{ skewY, willChange: 'transform' }}
+      onClick={onBackgroundClick}
+    >
+      {children}
+    </motion.div>
+  )
+}
+
 export function ProjectConveyor({
   projects,
   onSelect,
@@ -298,9 +366,21 @@ export function ProjectConveyor({
   const [damping, setDamping] = useState(DEFAULT_SPRING.damping)
   const [mass, setMass] = useState(DEFAULT_SPRING.mass)
   const [padFactor, setPadFactor] = useState(DEFAULT_PAD_FACTOR)
+  const [baseSkew, setBaseSkew] = useState(DEFAULT_BASE_SKEW)
+  const [maxSkew, setMaxSkew] = useState(DEFAULT_MAX_SKEW)
+  const [skewReturn, setSkewReturn] = useState(DEFAULT_SKEW_RETURN)
+  const [rowGap, setRowGap] = useState(DEFAULT_ROW_GAP)
 
   const scrollTarget = useMotionValue(0)
   const scroll = useSpring(scrollTarget, { stiffness, damping, mass })
+  // Smoothed velocity of the scroll spring drives the per-row skew. Its
+  // stiffness controls how quickly the rows flatten back out after scrolling.
+  const scrollVelocity = useVelocity(scroll)
+  const smoothVelocity = useSpring(scrollVelocity, {
+    stiffness: skewReturn,
+    damping: SKEW_SPRING_DAMPING,
+    mass: SKEW_SPRING_MASS,
+  })
   const introProgress = useMotionValue(0)
   const introStartedRef = useRef(false)
 
@@ -377,18 +457,22 @@ export function ProjectConveyor({
     <>
       <div
         ref={containerRef}
-        className="flex h-full flex-col justify-center gap-4 py-4"
+        className="flex h-full flex-col justify-center py-4"
+        style={{ gap: rowGap }}
         onClick={(e) => {
           // Click on empty conveyor space (not on a tile) closes the detail.
           if (selectedId != null && e.target === e.currentTarget && onClose) onClose()
         }}
       >
         {[0, 1, 2].map((rowIdx) => (
-          <div
+          <ConveyorRow
             key={rowIdx}
-            ref={rowIdx === 0 ? setRowEl : undefined}
-            className="overflow-hidden h-1/4 relative"
-            onClick={(e) => {
+            rowIdx={rowIdx}
+            velocity={smoothVelocity}
+            baseSkew={baseSkew}
+            maxSkew={maxSkew}
+            rowRef={rowIdx === 0 ? setRowEl : undefined}
+            onBackgroundClick={(e) => {
               if (selectedId != null && e.target === e.currentTarget && onClose) onClose()
             }}
           >
@@ -413,7 +497,7 @@ export function ProjectConveyor({
                 innerRef={rowIdx === 0 && i === 0 ? setTileEl : undefined}
               />
             ))}
-          </div>
+          </ConveyorRow>
         ))}
       </div>
       <ConveyorDevPanel
@@ -427,6 +511,14 @@ export function ProjectConveyor({
         setMass={setMass}
         padFactor={padFactor}
         setPadFactor={setPadFactor}
+        baseSkew={baseSkew}
+        setBaseSkew={setBaseSkew}
+        maxSkew={maxSkew}
+        setMaxSkew={setMaxSkew}
+        skewReturn={skewReturn}
+        setSkewReturn={setSkewReturn}
+        rowGap={rowGap}
+        setRowGap={setRowGap}
       />
     </>
   )
@@ -443,6 +535,14 @@ function ConveyorDevPanel({
   setMass,
   padFactor,
   setPadFactor,
+  baseSkew,
+  setBaseSkew,
+  maxSkew,
+  setMaxSkew,
+  skewReturn,
+  setSkewReturn,
+  rowGap,
+  setRowGap,
 }: {
   wheelStep: number
   setWheelStep: (v: number) => void
@@ -454,6 +554,14 @@ function ConveyorDevPanel({
   setMass: (v: number) => void
   padFactor: number
   setPadFactor: (v: number) => void
+  baseSkew: number
+  setBaseSkew: (v: number) => void
+  maxSkew: number
+  setMaxSkew: (v: number) => void
+  skewReturn: number
+  setSkewReturn: (v: number) => void
+  rowGap: number
+  setRowGap: (v: number) => void
 }) {
   const [open, setOpen] = useState(true)
   const reset = () => {
@@ -462,6 +570,10 @@ function ConveyorDevPanel({
     setDamping(DEFAULT_SPRING.damping)
     setMass(DEFAULT_SPRING.mass)
     setPadFactor(DEFAULT_PAD_FACTOR)
+    setBaseSkew(DEFAULT_BASE_SKEW)
+    setMaxSkew(DEFAULT_MAX_SKEW)
+    setSkewReturn(DEFAULT_SKEW_RETURN)
+    setRowGap(DEFAULT_ROW_GAP)
   }
   return (
     <div
@@ -516,6 +628,38 @@ function ConveyorDevPanel({
             min={0}
             max={3}
             step={0.05}
+          />
+          <DevSlider
+            label="base skew°"
+            value={baseSkew}
+            onChange={setBaseSkew}
+            min={0}
+            max={45}
+            step={1}
+          />
+          <DevSlider
+            label="max skew°"
+            value={maxSkew}
+            onChange={setMaxSkew}
+            min={0}
+            max={45}
+            step={1}
+          />
+          <DevSlider
+            label="skew return"
+            value={skewReturn}
+            onChange={setSkewReturn}
+            min={1}
+            max={400}
+            step={1}
+          />
+          <DevSlider
+            label="row gap"
+            value={rowGap}
+            onChange={setRowGap}
+            min={-120}
+            max={120}
+            step={1}
           />
         </div>
       )}
