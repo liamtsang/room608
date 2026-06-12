@@ -26,7 +26,7 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
       <body>
         <RoomProvider>
           <div className="block h-[100dvh]">
-            <div className="fixed h-dvh w-dvw grid grid-cols-3 grid-rows-3 *:border-black *:border-1 z-10 pointer-events-none">
+            {/*<div className="fixed h-dvh w-dvw grid grid-cols-3 grid-rows-3 *:border-black *:border-1 z-10 pointer-events-none">
               <div></div>
               <div></div>
               <div></div>
@@ -36,7 +36,8 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
               <div></div>
               <div></div>
               <div></div>
-            </div>
+              </div>*/}
+            <div className="fixed h-dvh w-dvw z-10 pointer-events-none dot-grid-bg mix-blend-darken"></div>
             <main className="relative flex-1 h-[100dvh] overflow-hidden">
               <PageTransition>{children}</PageTransition>
             </main>

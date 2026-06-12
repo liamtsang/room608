@@ -6,6 +6,7 @@ import {
   animate,
   motion,
   usePresence,
+  useAnimationFrame,
   useMotionValue,
   useSpring,
   useTransform,
@@ -47,6 +48,14 @@ const SKEW_VELOCITY_RANGE = 6000
 const DEFAULT_SKEW_RETURN = 120
 const SKEW_SPRING_DAMPING = 24
 const SKEW_SPRING_MASS = 0.5
+// How long (ms) the skew holds its scrolled angle after motion ceases before
+// relaxing back to base. Bridges the gaps between discrete wheel ticks so a
+// continuous scroll doesn't flatten-and-reshear on every tick (the shaky long
+// scroll). 0 == reset immediately, the original behaviour.
+const DEFAULT_RESET_DELAY = 30
+// Velocity (px/s) below which the scroll counts as "stopped" — the reset-delay
+// timer starts once raw velocity drops under this.
+const SKEW_IDLE_VELOCITY = 5
 // Vertical gap (px) between the three rows. Lower / negative values let the
 // skewed rows overlap more. 16 == the original gap-4.
 const DEFAULT_ROW_GAP = 16
@@ -391,14 +400,32 @@ export function ProjectConveyor({
   const [baseSkew, setBaseSkew] = useState(DEFAULT_BASE_SKEW)
   const [maxSkew, setMaxSkew] = useState(DEFAULT_MAX_SKEW)
   const [skewReturn, setSkewReturn] = useState(DEFAULT_SKEW_RETURN)
+  const [resetDelay, setResetDelay] = useState(DEFAULT_RESET_DELAY)
   const [rowGap, setRowGap] = useState(DEFAULT_ROW_GAP)
 
   const scrollTarget = useMotionValue(0)
   const scroll = useSpring(scrollTarget, { stiffness, damping, mass })
-  // Smoothed velocity of the scroll spring drives the per-row skew. Its
-  // stiffness controls how quickly the rows flatten back out after scrolling.
   const scrollVelocity = useVelocity(scroll)
-  const smoothVelocity = useSpring(scrollVelocity, {
+  // Held velocity feeds the skew instead of the raw scroll velocity. It tracks
+  // the velocity's peak while scrolling, then — once velocity has stayed under
+  // SKEW_IDLE_VELOCITY for `resetDelay` ms — releases to follow the decay so the
+  // skew relaxes. Holding through the lulls between discrete wheel ticks is what
+  // stops the shear from resetting and re-shearing on a long scroll.
+  const heldVelocity = useMotionValue(0)
+  const lastActiveRef = useRef(0)
+  useAnimationFrame((time) => {
+    const v = scrollVelocity.get()
+    if (Math.abs(v) > SKEW_IDLE_VELOCITY) lastActiveRef.current = time
+    const rising = Math.abs(v) >= Math.abs(heldVelocity.get())
+    const released = time - lastActiveRef.current >= resetDelay
+    // Speed-ups track instantly; otherwise freeze at the peak until the delay
+    // lapses, then follow the (now-decayed) velocity down. The downstream spring
+    // turns that release into a smooth relax back to base.
+    if (rising || released) heldVelocity.set(v)
+  })
+  // Smoothed, held velocity drives the per-row skew. skewReturn stiffness
+  // controls how quickly the rows flatten once the held value releases.
+  const smoothVelocity = useSpring(heldVelocity, {
     stiffness: skewReturn,
     damping: SKEW_SPRING_DAMPING,
     mass: SKEW_SPRING_MASS,
@@ -544,6 +571,8 @@ export function ProjectConveyor({
         setMaxSkew={setMaxSkew}
         skewReturn={skewReturn}
         setSkewReturn={setSkewReturn}
+        resetDelay={resetDelay}
+        setResetDelay={setResetDelay}
         rowGap={rowGap}
         setRowGap={setRowGap}
       />
@@ -568,6 +597,8 @@ function ConveyorDevPanel({
   setMaxSkew,
   skewReturn,
   setSkewReturn,
+  resetDelay,
+  setResetDelay,
   rowGap,
   setRowGap,
 }: {
@@ -587,6 +618,8 @@ function ConveyorDevPanel({
   setMaxSkew: (v: number) => void
   skewReturn: number
   setSkewReturn: (v: number) => void
+  resetDelay: number
+  setResetDelay: (v: number) => void
   rowGap: number
   setRowGap: (v: number) => void
 }) {
@@ -600,6 +633,7 @@ function ConveyorDevPanel({
     setBaseSkew(DEFAULT_BASE_SKEW)
     setMaxSkew(DEFAULT_MAX_SKEW)
     setSkewReturn(DEFAULT_SKEW_RETURN)
+    setResetDelay(DEFAULT_RESET_DELAY)
     setRowGap(DEFAULT_ROW_GAP)
   }
   return (
@@ -678,6 +712,14 @@ function ConveyorDevPanel({
             onChange={setSkewReturn}
             min={1}
             max={400}
+            step={1}
+          />
+          <DevSlider
+            label="reset delay"
+            value={resetDelay}
+            onChange={setResetDelay}
+            min={0}
+            max={50}
             step={1}
           />
           <DevSlider

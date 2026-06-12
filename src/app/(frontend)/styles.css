@@ -34,10 +34,10 @@ html,
 }
 
 body {
-  --dot-bg: #cbbbb9;
-  --dot-color: #ad9f9d;
+  --dot-bg: #ffffff;
+  --dot-color: #000000;
   --dot-size: 2px;
-  --dot-space: 12px;
+  --dot-space: 128px;
 }
 
 main {
