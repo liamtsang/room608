@@ -48,14 +48,11 @@ const SKEW_VELOCITY_RANGE = 6000
 const DEFAULT_SKEW_RETURN = 230
 const SKEW_SPRING_DAMPING = 24
 const SKEW_SPRING_MASS = 0.5
-// How long (ms) the skew holds its scrolled angle after motion ceases before
-// relaxing back to base. Bridges the gaps between discrete wheel ticks so a
-// continuous scroll doesn't flatten-and-reshear on every tick (the shaky long
-// scroll). 0 == reset immediately, the original behaviour.
+// How long (ms) after the last wheel tick the skew holds its scrolled angle
+// before relaxing back to base. Bridges the gaps between discrete wheel ticks so
+// a continuous scroll doesn't flatten-and-reshear on every tick (the shaky long
+// scroll). 0 == release immediately on the next idle frame.
 const DEFAULT_RESET_DELAY = 1
-// Velocity (px/s) below which the scroll counts as "stopped" — the reset-delay
-// timer starts once raw velocity drops under this.
-const SKEW_IDLE_VELOCITY = 5
 // Vertical gap (px) between the three rows. Lower / negative values let the
 // skewed rows overlap more. 16 == the original gap-4.
 const DEFAULT_ROW_GAP = 1
@@ -407,20 +404,26 @@ export function ProjectConveyor({
   const scroll = useSpring(scrollTarget, { stiffness, damping, mass })
   const scrollVelocity = useVelocity(scroll)
   // Held velocity feeds the skew instead of the raw scroll velocity. It tracks
-  // the velocity's peak while scrolling, then — once velocity has stayed under
-  // SKEW_IDLE_VELOCITY for `resetDelay` ms — releases to follow the decay so the
-  // skew relaxes. Holding through the lulls between discrete wheel ticks is what
-  // stops the shear from resetting and re-shearing on a long scroll.
+  // the velocity's peak while scrolling, then — once `resetDelay` ms have passed
+  // since the last wheel tick — releases to follow the decay so the skew relaxes.
+  // Holding through the lulls between discrete wheel ticks is what stops the
+  // shear from resetting and re-shearing on a long scroll.
   const heldVelocity = useMotionValue(0)
-  const lastActiveRef = useRef(0)
-  useAnimationFrame((time) => {
+  // Timestamp of the last real wheel event (set in the wheel handler below).
+  // The release is keyed off actual input, NOT the scroll spring's residual
+  // velocity — otherwise the skew stays pinned at peak for the entire momentum
+  // coast (the spring keeps moving long after you stop), which made resetDelay
+  // feel like ~300ms regardless of its value.
+  const lastWheelRef = useRef(0)
+  useAnimationFrame(() => {
     const v = scrollVelocity.get()
-    if (Math.abs(v) > SKEW_IDLE_VELOCITY) lastActiveRef.current = time
     const rising = Math.abs(v) >= Math.abs(heldVelocity.get())
-    const released = time - lastActiveRef.current >= resetDelay
-    // Speed-ups track instantly; otherwise freeze at the peak until the delay
-    // lapses, then follow the (now-decayed) velocity down. The downstream spring
-    // turns that release into a smooth relax back to base.
+    const released = performance.now() - lastWheelRef.current >= resetDelay
+    // Speed-ups track instantly; otherwise freeze at the peak until `resetDelay`
+    // ms after the last wheel tick, then follow the (decaying) velocity down. The
+    // downstream spring turns that release into a smooth relax back to base, in
+    // tandem with the scroll coast. resetDelay only needs to outlast the gap
+    // between discrete wheel ticks to stop a continuous scroll from pulsing.
     if (rising || released) heldVelocity.set(v)
   })
   // Smoothed, held velocity drives the per-row skew. skewReturn stiffness
@@ -471,6 +474,7 @@ export function ProjectConveyor({
       // Selection freezes the conveyor — wheel events are swallowed so the
       // detail panel stays anchored to its tile.
       if (selectedId != null) return
+      lastWheelRef.current = performance.now()
       scrollTarget.set(scrollTarget.get() + (e.deltaY + e.deltaX) * wheelStep)
     }
     el.addEventListener('wheel', onWheel, { passive: false })
@@ -741,7 +745,7 @@ function ConveyorDevPanel({
             value={resetDelay}
             onChange={setResetDelay}
             min={0}
-            max={50}
+            max={1000}
             step={1}
           />
           <DevSlider
