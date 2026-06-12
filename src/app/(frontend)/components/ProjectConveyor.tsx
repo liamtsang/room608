@@ -52,7 +52,7 @@ const SKEW_SPRING_MASS = 0.5
 // before relaxing back to base. Bridges the gaps between discrete wheel ticks so
 // a continuous scroll doesn't flatten-and-reshear on every tick (the shaky long
 // scroll). 0 == release immediately on the next idle frame.
-const DEFAULT_RESET_DELAY = 1
+const DEFAULT_RESET_DELAY = 500
 // Vertical gap (px) between the three rows. Lower / negative values let the
 // skewed rows overlap more. 16 == the original gap-4.
 const DEFAULT_ROW_GAP = 1
