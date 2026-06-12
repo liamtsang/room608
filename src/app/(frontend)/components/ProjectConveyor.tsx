@@ -20,11 +20,11 @@ const ROW_COUNT = 3
 const TILE_GAP = 16
 // Wheel deltas land in big discrete jumps; scale down per-tick step so the
 // spring has room to smooth between events.
-const DEFAULT_WHEEL_STEP = 3
-const DEFAULT_SPRING = { stiffness: 158, damping: 28, mass: 0.4 }
+const DEFAULT_WHEEL_STEP = 1.75
+const DEFAULT_SPRING = { stiffness: 148, damping: 28, mass: 0.4 }
 // Multiplier on tileWidth used as the minimum off-screen pad per row side.
 // 1 = exactly one tile of off-screen pad (smooth row-to-row teleport).
-const DEFAULT_PAD_FACTOR = 1
+const DEFAULT_PAD_FACTOR = 0
 // Park hidden tiles far enough left that they can't bleed into a neighbour.
 const OFFSCREEN = -99999
 // Intro: tiles file along the serpentine path as if scrolled forward.
@@ -39,26 +39,26 @@ const SLIDE_SPRING = { type: 'spring' as const, stiffness: 200, damping: 25 }
 // jitter on discrete wheel ticks.
 // Permanent resting shear applied to every row (alternating sign per row) so
 // the conveyor sits in the reference's zigzag even when idle.
-const DEFAULT_BASE_SKEW = 8
+const DEFAULT_BASE_SKEW = 0
 // Extra shear added on top of the base while scrolling, scaled by velocity.
-const DEFAULT_MAX_SKEW = 8
+const DEFAULT_MAX_SKEW = 7
 const SKEW_VELOCITY_RANGE = 6000
 // Stiffness of the velocity-smoothing spring. Higher = the skew snaps back to
 // flat faster when scrolling stops (the "return to base" speed).
-const DEFAULT_SKEW_RETURN = 120
+const DEFAULT_SKEW_RETURN = 230
 const SKEW_SPRING_DAMPING = 24
 const SKEW_SPRING_MASS = 0.5
 // How long (ms) the skew holds its scrolled angle after motion ceases before
 // relaxing back to base. Bridges the gaps between discrete wheel ticks so a
 // continuous scroll doesn't flatten-and-reshear on every tick (the shaky long
 // scroll). 0 == reset immediately, the original behaviour.
-const DEFAULT_RESET_DELAY = 30
+const DEFAULT_RESET_DELAY = 1
 // Velocity (px/s) below which the scroll counts as "stopped" — the reset-delay
 // timer starts once raw velocity drops under this.
 const SKEW_IDLE_VELOCITY = 5
 // Vertical gap (px) between the three rows. Lower / negative values let the
 // skewed rows overlap more. 16 == the original gap-4.
-const DEFAULT_ROW_GAP = 16
+const DEFAULT_ROW_GAP = 1
 
 function firstImage(project: Project): Media | null {
   const images = (project.images ?? []).filter((img): img is Media => typeof img !== 'number')
@@ -624,6 +624,23 @@ function ConveyorDevPanel({
   setRowGap: (v: number) => void
 }) {
   const [open, setOpen] = useState(true)
+  const [copied, setCopied] = useState(false)
+  const copy = () => {
+    const text = [
+      `const DEFAULT_WHEEL_STEP = ${wheelStep}`,
+      `const DEFAULT_SPRING = { stiffness: ${stiffness}, damping: ${damping}, mass: ${mass} }`,
+      `const DEFAULT_PAD_FACTOR = ${padFactor}`,
+      `const DEFAULT_BASE_SKEW = ${baseSkew}`,
+      `const DEFAULT_MAX_SKEW = ${maxSkew}`,
+      `const DEFAULT_SKEW_RETURN = ${skewReturn}`,
+      `const DEFAULT_RESET_DELAY = ${resetDelay}`,
+      `const DEFAULT_ROW_GAP = ${rowGap}`,
+    ].join('\n')
+    navigator.clipboard.writeText(text).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 1200)
+    })
+  }
   const reset = () => {
     setWheelStep(DEFAULT_WHEEL_STEP)
     setStiffness(DEFAULT_SPRING.stiffness)
@@ -650,9 +667,14 @@ function ConveyorDevPanel({
           conveyor {open ? '▾' : '▸'}
         </button>
         {open && (
-          <button type="button" onClick={reset} className="cursor-pointer underline">
-            reset
-          </button>
+          <div className="flex gap-2">
+            <button type="button" onClick={copy} className="cursor-pointer underline">
+              {copied ? 'copied' : 'copy'}
+            </button>
+            <button type="button" onClick={reset} className="cursor-pointer underline">
+              reset
+            </button>
+          </div>
         )}
       </div>
       {open && (
