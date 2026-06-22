@@ -10,8 +10,10 @@ import {
   useSpring,
   useTransform,
   type MotionValue,
+  type SpringOptions,
 } from 'motion/react'
 import { RichText } from '@payloadcms/richtext-lexical/react'
+import { useDialKit } from 'dialkit'
 import type { Media, Project } from '@/payload-types'
 
 const ROW_COUNT = 3
@@ -44,14 +46,18 @@ function mod(n: number, m: number) {
 // taste — neutrals desaturate, hues recolor.
 const FADE_TINT = '#C6B79C'
 
+type CardStyle = { radius: number; borderWidth: number; borderColor: string }
+
 function Tile({
   project,
   onClick,
   faded,
+  card,
 }: {
   project: Project
   onClick: () => void
   faded: boolean
+  card: CardStyle
 }) {
   const thumb = firstImage(project)
   return (
@@ -65,12 +71,15 @@ function Tile({
       <div className="p-2 flex flex-col gap-2 h-full">
         {thumb?.url ? (
           <motion.div
-            className="rounded-md overflow-hidden outline-1 aspect-[16/9] h-full relative"
+            className="overflow-hidden outline-1 aspect-[16/9] h-full relative"
+            style={{
+              borderRadius: card.radius,
+              borderBottomStyle: 'solid',
+              borderBottomWidth: card.borderWidth,
+            }}
             animate={{
-              outlineColor: faded ? 'rgba(61, 61, 61, 0)' : 'rgba(61, 61, 61, 1)',
-              boxShadow: faded
-                ? 'inset 0px -3px 0px 0px rgba(61, 61, 61, 0)'
-                : 'inset 0px -3px 0px 0px rgba(61, 61, 61, 1)',
+              outlineColor: faded ? `${card.borderColor}00` : `${card.borderColor}ff`,
+              borderBottomColor: faded ? `${card.borderColor}00` : `${card.borderColor}ff`,
             }}
             transition={{ duration: 0.4, ease: 'easeInOut' }}
           >
@@ -98,7 +107,10 @@ function Tile({
             />
           </motion.div>
         ) : (
-          <div className="outline-2 outline-[#3D3D3D] bg-[#b3a488] aspect-[16/9] h-full" />
+          <div
+            className="outline-2 outline-[#3D3D3D] bg-[#b3a488] aspect-[16/9] h-full"
+            style={{ borderRadius: card.radius }}
+          />
         )}
       </div>
     </motion.button>
@@ -122,6 +134,9 @@ function PathTile({
   onClose,
   selected,
   gridFaded,
+  card,
+  detailSpring,
+  creditSpring,
   innerRef,
 }: {
   project: Project
@@ -140,6 +155,9 @@ function PathTile({
   onClose?: () => void
   selected: boolean
   gridFaded: boolean
+  card: CardStyle
+  detailSpring: SpringOptions
+  creditSpring: SpringOptions
   innerRef?: (el: HTMLDivElement | null) => void
 }) {
   // Virtual position v walks a closed serpentine path of length totalLen,
@@ -188,6 +206,8 @@ function PathTile({
             tileX={x}
             rowWidth={rowWidth}
             tilePitch={tilePitch}
+            card={card}
+            spring={detailSpring}
             onExitComplete={() => setPanelMounted(false)}
           />
         )}
@@ -199,6 +219,8 @@ function PathTile({
             project={project}
             tileX={x}
             verticalPitch={verticalPitch}
+            card={card}
+            spring={creditSpring}
             // top rows pop down, the bottom row pops up
             dir={rowIdx === ROW_COUNT - 1 ? -1 : 1}
           />
@@ -215,7 +237,7 @@ function PathTile({
           zIndex: panelMounted ? 2 : 0,
         }}
       >
-        <Tile project={project} onClick={handleTileClick} faded={tileFaded} />
+        <Tile project={project} onClick={handleTileClick} faded={tileFaded} card={card} />
       </motion.div>
     </>
   )
@@ -230,12 +252,16 @@ function SlidePanel({
   tileX,
   rowWidth,
   tilePitch,
+  card,
+  spring,
   onExitComplete,
 }: {
   project: Project
   tileX: MotionValue<number>
   rowWidth: number
   tilePitch: number
+  card: CardStyle
+  spring: SpringOptions
   onExitComplete?: () => void
 }) {
   const [isPresent, safeToRemove] = usePresence()
@@ -245,16 +271,16 @@ function SlidePanel({
 
   useEffect(() => {
     if (isPresent) {
-      const ctrl = animate(offset, dir * tilePitch, SLIDE_SPRING)
+      const ctrl = animate(offset, dir * tilePitch, spring)
       return () => ctrl.stop()
     }
-    const ctrl = animate(offset, 0, SLIDE_SPRING)
+    const ctrl = animate(offset, 0, spring)
     ctrl.then(() => {
       onExitComplete?.()
       safeToRemove?.()
     })
     return () => ctrl.stop()
-  }, [isPresent, dir, tilePitch, offset, safeToRemove, onExitComplete])
+  }, [isPresent, dir, tilePitch, offset, spring, safeToRemove, onExitComplete])
 
   return (
     <motion.div
@@ -267,7 +293,7 @@ function SlidePanel({
         zIndex: 1,
       }}
     >
-      <DetailPanel project={project} />
+      <DetailPanel project={project} card={card} />
     </motion.div>
   )
 }
@@ -277,11 +303,19 @@ function directorName(project: Project): string {
   return credits.find((c) => c.role.toLowerCase() === 'director')?.name ?? credits[0]?.name ?? '—'
 }
 
-function DetailPanel({ project }: { project: Project }) {
+function DetailPanel({ project, card }: { project: Project; card: CardStyle }) {
   return (
     <div className="text-left h-full pointer-events-auto">
       <div className="p-2 flex flex-col gap-2 h-full">
-        <div className="shadow-[inset_0_-2px_black] overflow-hidden outline outline-black aspect-[16/9] h-full bg-[#C6B79C] flex flex-col gap-2">
+        <div
+          className="overflow-hidden outline outline-black aspect-[16/9] h-full bg-[#C6B79C] flex flex-col gap-2"
+          style={{
+            borderRadius: card.radius,
+            borderBottomStyle: 'solid',
+            borderBottomWidth: card.borderWidth,
+            borderBottomColor: card.borderColor,
+          }}
+        >
           {project.description ? (
             <div className="text-sm flex-1 overflow-y-auto pr-1">
               <RichText data={project.description} />
@@ -298,7 +332,7 @@ function DetailPanel({ project }: { project: Project }) {
 // Title/credits card that pops vertically out from behind the selected tile —
 // down for the top rows, up for the bottom row. Mirrors SlidePanel's emerge-
 // from-behind motion on the Y axis. Four boxed quadrants: label / value ×2.
-function CreditCard({ project, dir }: { project: Project; dir: 1 | -1 }) {
+function CreditCard({ project, dir, card }: { project: Project; dir: 1 | -1; card: CardStyle }) {
   // dir 1 = popping down → sit at the top of the slot (just below the tile);
   // dir -1 = popping up → sit at the bottom of the slot (just above the tile).
   return (
@@ -306,7 +340,15 @@ function CreditCard({ project, dir }: { project: Project; dir: 1 | -1 }) {
       <div
         className={`p-2 flex flex-col gap-2 h-full ${dir === 1 ? 'justify-start' : 'justify-end'}`}
       >
-        <div className="w-full bg-[#C6B79C] outline outline-black p-2 grid grid-cols-[auto_1fr] grid-rows-2 gap-2 content-center">
+        <div
+          className="w-full bg-[#C6B79C] outline outline-black p-2 grid grid-cols-[auto_1fr] grid-rows-2 gap-2 content-center"
+          style={{
+            borderRadius: card.radius,
+            borderBottomStyle: 'solid',
+            borderBottomWidth: card.borderWidth,
+            borderBottomColor: card.borderColor,
+          }}
+        >
           <div className="outline-1 outline-[#3D3D3D] px-3 py-2 text-sm text-center">Title</div>
           <div className="outline-1 outline-[#3D3D3D] px-3 py-2 text-sm max-w-[30ch]">
             {project.title}
@@ -329,12 +371,16 @@ function VerticalPanel({
   tileX,
   verticalPitch,
   dir,
+  card,
+  spring,
   onExitComplete,
 }: {
   project: Project
   tileX: MotionValue<number>
   verticalPitch: number
   dir: 1 | -1
+  card: CardStyle
+  spring: SpringOptions
   onExitComplete?: () => void
 }) {
   const [isPresent, safeToRemove] = usePresence()
@@ -343,22 +389,33 @@ function VerticalPanel({
 
   useEffect(() => {
     if (isPresent) {
-      const ctrl = animate(offsetY, dir * verticalPitch, SLIDE_SPRING)
+      const ctrl = animate(offsetY, dir * verticalPitch, spring)
       return () => ctrl.stop()
     }
-    const ctrl = animate(offsetY, 0, SLIDE_SPRING)
+    const ctrl = animate(offsetY, 0, spring)
     ctrl.then(() => {
       onExitComplete?.()
       safeToRemove?.()
     })
     return () => ctrl.stop()
-  }, [isPresent, dir, verticalPitch, offsetY, safeToRemove, onExitComplete])
+  }, [isPresent, dir, verticalPitch, offsetY, spring, safeToRemove, onExitComplete])
 
   return (
     <motion.div
-      style={{ x, y: offsetY, position: 'absolute', top: 0, left: 0, height: '100%', zIndex: 1 }}
+      style={{
+        x,
+        y: offsetY,
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        height: '100%',
+        zIndex: 1,
+        // Display-only card: let clicks fall through so the empty space above/
+        // below it doesn't swallow click-to-close.
+        pointerEvents: 'none',
+      }}
     >
-      <CreditCard project={project} dir={dir} />
+      <CreditCard project={project} dir={dir} card={card} />
     </motion.div>
   )
 }
@@ -377,14 +434,43 @@ export function ProjectConveyor({
   const gridFaded = selectedId != null
   const containerRef = useRef<HTMLDivElement | null>(null)
 
-  const [wheelStep, setWheelStep] = useState(DEFAULT_WHEEL_STEP)
-  const [stiffness, setStiffness] = useState(DEFAULT_SPRING.stiffness)
-  const [damping, setDamping] = useState(DEFAULT_SPRING.damping)
-  const [mass, setMass] = useState(DEFAULT_SPRING.mass)
-  const [padFactor, setPadFactor] = useState(DEFAULT_PAD_FACTOR)
+  const dials = useDialKit(
+    'Conveyor',
+    {
+      motion: {
+        wheelStep: [DEFAULT_WHEEL_STEP, 0.05, 10, 0.05],
+        scrollSpring: { type: 'spring', ...DEFAULT_SPRING },
+        padFactor: [DEFAULT_PAD_FACTOR, 0, 3, 0.05],
+        detailSpring: { ...SLIDE_SPRING },
+        creditSpring: { ...SLIDE_SPRING },
+      },
+      cards: {
+        gap: [TILE_GAP, 0, 64, 1],
+        radius: [6, 0, 32, 1], // rounded-md ≈ 6px
+        borderWidth: [3, 0, 16, 1],
+        borderColor: '#3d3d3d',
+      },
+      dots: {
+        bg: '#cbbbb9',
+        color: '#ad9f9d',
+        size: [2, 0, 12, 1],
+        space: [32, 4, 96, 1],
+      },
+    },
+    { id: 'conveyor', persist: true }, // tweaks survive reloads
+  )
+
+  // Sync the dot-grid controls onto <body>, where .dot-grid-bg reads them.
+  useEffect(() => {
+    const s = document.body.style
+    s.setProperty('--dot-bg', dials.dots.bg)
+    s.setProperty('--dot-color', dials.dots.color)
+    s.setProperty('--dot-size', `${dials.dots.size}px`)
+    s.setProperty('--dot-space', `${dials.dots.space}px`)
+  }, [dials.dots.bg, dials.dots.color, dials.dots.size, dials.dots.space])
 
   const scrollTarget = useMotionValue(0)
-  const scroll = useSpring(scrollTarget, { stiffness, damping, mass })
+  const scroll = useSpring(scrollTarget, dials.motion.scrollSpring as SpringOptions)
   const introProgress = useMotionValue(0)
   const introStartedRef = useRef(false)
 
@@ -424,11 +510,11 @@ export function ProjectConveyor({
       // Selection freezes the conveyor — wheel events are swallowed so the
       // detail panel stays anchored to its tile.
       if (selectedId != null) return
-      scrollTarget.set(scrollTarget.get() + (e.deltaY + e.deltaX) * wheelStep)
+      scrollTarget.set(scrollTarget.get() + (e.deltaY + e.deltaX) * dials.motion.wheelStep)
     }
     el.addEventListener('wheel', onWheel, { passive: false })
     return () => el.removeEventListener('wheel', onWheel)
-  }, [scrollTarget, wheelStep, selectedId])
+  }, [scrollTarget, dials.motion.wheelStep, selectedId])
 
   // When selection happens, snap the spring's target to the current value so
   // any in-flight scroll motion stops drifting under the detail panel.
@@ -452,14 +538,14 @@ export function ProjectConveyor({
   if (projects.length === 0) return null
 
   const N = projects.length
-  const tilePitch = tileWidth + TILE_GAP
+  const tilePitch = tileWidth + dials.cards.gap
   // Row-to-row vertical pitch (tile height + the gap-4 between rows), used as
   // the distance the credit card pops up/down out of the tile.
-  const verticalPitch = tileHeight + TILE_GAP
+  const verticalPitch = tileHeight + dials.cards.gap
   // Pack items tightly when N supports it; otherwise stretch to keep
   // off-screen pad >= tileWidth so row-to-row teleports stay invisible.
   const baseSegLen = (N * tilePitch) / ROW_COUNT
-  const minSegLen = rowWidth + 2 * tileWidth * padFactor
+  const minSegLen = rowWidth + 2 * tileWidth * dials.motion.padFactor
   const segLen = Math.max(baseSegLen, minSegLen)
   const totalLen = ROW_COUNT * segLen
   const itemSpacing = totalLen / N
@@ -506,149 +592,20 @@ export function ProjectConveyor({
                 onClose={onClose}
                 selected={project.id === selectedId}
                 gridFaded={gridFaded}
+                card={{
+                  radius: dials.cards.radius,
+                  borderWidth: dials.cards.borderWidth,
+                  borderColor: dials.cards.borderColor,
+                }}
+                detailSpring={dials.motion.detailSpring as SpringOptions}
+                creditSpring={dials.motion.creditSpring as SpringOptions}
                 innerRef={rowIdx === 0 && i === 0 ? setTileEl : undefined}
               />
             ))}
           </div>
         ))}
       </div>
-      <ConveyorDevPanel
-        wheelStep={wheelStep}
-        setWheelStep={setWheelStep}
-        stiffness={stiffness}
-        setStiffness={setStiffness}
-        damping={damping}
-        setDamping={setDamping}
-        mass={mass}
-        setMass={setMass}
-        padFactor={padFactor}
-        setPadFactor={setPadFactor}
-      />
     </>
   )
 }
 
-function ConveyorDevPanel({
-  wheelStep,
-  setWheelStep,
-  stiffness,
-  setStiffness,
-  damping,
-  setDamping,
-  mass,
-  setMass,
-  padFactor,
-  setPadFactor,
-}: {
-  wheelStep: number
-  setWheelStep: (v: number) => void
-  stiffness: number
-  setStiffness: (v: number) => void
-  damping: number
-  setDamping: (v: number) => void
-  mass: number
-  setMass: (v: number) => void
-  padFactor: number
-  setPadFactor: (v: number) => void
-}) {
-  const [open, setOpen] = useState(true)
-  const reset = () => {
-    setWheelStep(DEFAULT_WHEEL_STEP)
-    setStiffness(DEFAULT_SPRING.stiffness)
-    setDamping(DEFAULT_SPRING.damping)
-    setMass(DEFAULT_SPRING.mass)
-    setPadFactor(DEFAULT_PAD_FACTOR)
-  }
-  return (
-    <div
-      className="fixed bottom-4 right-4 z-[100] bg-white/95 outline-1 outline-[#3D3D3D] drop-shadow-md p-3 text-xs font-mono select-none"
-      style={{ width: 240 }}
-    >
-      <div className="flex justify-between items-center mb-2">
-        <button
-          type="button"
-          onClick={() => setOpen((o) => !o)}
-          className="cursor-pointer text-left flex-1"
-        >
-          conveyor {open ? '▾' : '▸'}
-        </button>
-        {open && (
-          <button type="button" onClick={reset} className="cursor-pointer underline">
-            reset
-          </button>
-        )}
-      </div>
-      {open && (
-        <div className="space-y-2">
-          <DevSlider
-            label="wheel step"
-            value={wheelStep}
-            onChange={setWheelStep}
-            min={0.05}
-            max={10}
-            step={0.05}
-          />
-          <DevSlider
-            label="stiffness"
-            value={stiffness}
-            onChange={setStiffness}
-            min={1}
-            max={400}
-            step={1}
-          />
-          <DevSlider
-            label="damping"
-            value={damping}
-            onChange={setDamping}
-            min={1}
-            max={100}
-            step={1}
-          />
-          <DevSlider label="mass" value={mass} onChange={setMass} min={0.1} max={5} step={0.1} />
-          <DevSlider
-            label="pad ×tile"
-            value={padFactor}
-            onChange={setPadFactor}
-            min={0}
-            max={3}
-            step={0.05}
-          />
-        </div>
-      )}
-    </div>
-  )
-}
-
-function DevSlider({
-  label,
-  value,
-  onChange,
-  min,
-  max,
-  step,
-}: {
-  label: string
-  value: number
-  onChange: (v: number) => void
-  min: number
-  max: number
-  step: number
-}) {
-  return (
-    <label className="block">
-      <div className="flex justify-between">
-        <span>{label}</span>
-        <span>{value.toFixed(step < 1 ? 2 : 0)}</span>
-      </div>
-      <input
-        type="range"
-        min={min}
-        max={max}
-        step={step}
-        value={value}
-        onChange={(e) => onChange(Number(e.target.value))}
-        className="w-full"
-      />
-    </label>
-  )
-}

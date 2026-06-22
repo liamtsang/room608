@@ -1,4 +1,6 @@
 import React from 'react'
+import { DialRoot } from 'dialkit'
+import 'dialkit/styles.css'
 import './styles.css'
 import Nav from './components/nav'
 import PageTransition from './components/PageTransition'
@@ -32,6 +34,7 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
             <Nav />
           </div>
         </RoomProvider>
+        <DialRoot position="bottom-right" productionEnabled />
       </body>
     </html>
   )
