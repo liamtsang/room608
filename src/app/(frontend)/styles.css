@@ -20,6 +20,15 @@
   box-sizing: border-box;
 }
 
+/* Custom reticle cursor across the frontend. Hotspot = the center dot (17,18).
+   Universal selector beats UA defaults on buttons/links; explicit class-level
+   cursors (e.g. the timeline's grab) keep their own via higher specificity. */
+*,
+*::before,
+*::after {
+  cursor: url('/Frame%2035.svg') 17 18, auto;
+}
+
 html {
   font-size: 16px;
   line-height: 32px;

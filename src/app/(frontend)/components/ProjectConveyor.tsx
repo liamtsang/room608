@@ -44,6 +44,28 @@ function mod(n: number, m: number) {
   return ((n % m) + m) % m
 }
 
+type PathParams = {
+  index: number
+  rowIdx: number
+  itemSpacing: number
+  totalLen: number
+  segLen: number
+  offPad: number
+}
+
+// Screen x of a tile for a given scroll value s and intro progress p. Returns
+// OFFSCREEN when the tile's virtual position falls outside this row's segment.
+function pathX(s: number, p: number, { index, rowIdx, itemSpacing, totalLen, segLen, offPad }: PathParams) {
+  if (segLen <= 0 || totalLen <= 0 || itemSpacing <= 0) return OFFSCREEN
+  let v = index * itemSpacing + s + (p - 1) * totalLen
+  if (p >= 0.9999) v = mod(v, totalLen)
+  const itemRow = Math.floor(v / segLen)
+  if (itemRow !== rowIdx) return OFFSCREEN
+  const localV = v - itemRow * segLen
+  const isLTR = rowIdx % 2 === 0
+  return isLTR ? localV - offPad : segLen - localV - offPad
+}
+
 // Tint blended into the duplicate background image when faded. Adjust to
 // taste — neutrals desaturate, hues recolor.
 const FADE_TINT = '#C6B79C'
@@ -68,7 +90,7 @@ function Tile({
       onClick={onClick}
       whileHover={{ scale: 1.01, zIndex: 2 }}
       whileTap={{ scale: 0.97 }}
-      className="cursor-pointer text-left h-full"
+      className="text-left h-full"
     >
       <div className="p-2 flex flex-col gap-2 h-full">
         {thumb?.url ? (
@@ -124,6 +146,7 @@ function PathTile({
   index,
   rowIdx,
   scroll,
+  scrollTarget,
   introProgress,
   segLen,
   totalLen,
@@ -136,6 +159,8 @@ function PathTile({
   onClose,
   selected,
   gridFaded,
+  navigating,
+  fastExitRef,
   card,
   detailSpring,
   creditSpring,
@@ -145,6 +170,7 @@ function PathTile({
   index: number
   rowIdx: number
   scroll: MotionValue<number>
+  scrollTarget: MotionValue<number>
   introProgress: MotionValue<number>
   segLen: number
   totalLen: number
@@ -157,6 +183,8 @@ function PathTile({
   onClose?: () => void
   selected: boolean
   gridFaded: boolean
+  navigating: boolean
+  fastExitRef: { current: boolean }
   card: CardStyle
   detailSpring: SpringOptions
   creditSpring: SpringOptions
@@ -170,25 +198,35 @@ function PathTile({
   // During intro (introProgress < 1), v is shifted by (p-1)*totalLen and
   // mod is skipped so tiles can sit at v < 0 (off-screen left of row 0)
   // and slide rightward into resting positions as if scrolled forward.
-  const x = useTransform([scroll, introProgress], ([s, p]: number[]) => {
-    if (segLen <= 0 || totalLen <= 0 || itemSpacing <= 0) return OFFSCREEN
-    let v = index * itemSpacing + s + (p - 1) * totalLen
-    if (p >= 0.9999) v = mod(v, totalLen)
-    const itemRow = Math.floor(v / segLen)
-    if (itemRow !== rowIdx) return OFFSCREEN
-    const localV = v - itemRow * segLen
-    const isLTR = rowIdx % 2 === 0
-    return isLTR ? localV - offPad : segLen - localV - offPad
-  })
+  const pathParams = { index, rowIdx, itemSpacing, totalLen, segLen, offPad }
+  const x = useTransform([scroll, introProgress], ([s, p]: number[]) => pathX(s, p, pathParams))
 
   const tileFaded = gridFaded && !selected
 
   // While the panel is mounted (including its exit slide-back), keep the
   // tile above it so the panel slides back behind the image, not over it.
+  // But when *another* tile is now selected (a nav step), this tile is
+  // retracting + fading — drop it below so its semi-transparent image doesn't
+  // sit over the incoming panel.
   const [panelMounted, setPanelMounted] = useState(false)
   useEffect(() => {
     if (selected) setPanelMounted(true)
   }, [selected])
+  const panelAbove = panelMounted && (selected || !gridFaded)
+  // The item being navigated away from: snap it out fast so it doesn't linger
+  // and cross over the incoming item.
+  const retracting = panelMounted && !selected && gridFaded
+
+  // During a nav step the panel mounts while the tile is still sliding into
+  // its slot, so tileX.get() is transient. Compute the slide direction from
+  // where the tile will *rest* (its position at the scroll target) so the
+  // "open toward the side with more room" choice isn't fooled.
+  const dirOverride: 1 | -1 | undefined =
+    selected && navigating
+      ? pathX(scrollTarget.get(), introProgress.get(), pathParams) + tilePitch / 2 < rowWidth / 2
+        ? 1
+        : -1
+      : undefined
 
   // When something is already selected, clicks on any tile close — never
   // open another. Without this, clicking a faded tile would simultaneously
@@ -210,6 +248,8 @@ function PathTile({
             tilePitch={tilePitch}
             card={card}
             spring={detailSpring}
+            dirOverride={dirOverride}
+            fastExitRef={fastExitRef}
             onExitComplete={() => setPanelMounted(false)}
           />
         )}
@@ -223,6 +263,7 @@ function PathTile({
             verticalPitch={verticalPitch}
             card={card}
             spring={creditSpring}
+            fastExitRef={fastExitRef}
             // top rows pop down, the bottom row pops up
             dir={rowIdx === ROW_COUNT - 1 ? -1 : 1}
           />
@@ -236,8 +277,10 @@ function PathTile({
           top: 0,
           left: 0,
           height: '100%',
-          zIndex: panelMounted ? 2 : 0,
+          zIndex: panelAbove ? 2 : 0,
         }}
+        animate={{ opacity: retracting ? 0 : 1 }}
+        transition={{ duration: retracting ? 0.1 : 0.4, ease: 'easeOut' }}
       >
         <Tile project={project} onClick={handleTileClick} faded={tileFaded} card={card} />
       </motion.div>
@@ -256,6 +299,8 @@ function SlidePanel({
   tilePitch,
   card,
   spring,
+  dirOverride,
+  fastExitRef,
   onExitComplete,
 }: {
   project: Project
@@ -264,16 +309,30 @@ function SlidePanel({
   tilePitch: number
   card: CardStyle
   spring: SpringOptions
+  dirOverride?: 1 | -1
+  fastExitRef?: { current: boolean }
   onExitComplete?: () => void
 }) {
   const [isPresent, safeToRemove] = usePresence()
-  const [dir] = useState<1 | -1>(() => (tileX.get() + tilePitch / 2 < rowWidth / 2 ? 1 : -1))
+  const [dir] = useState<1 | -1>(
+    () => dirOverride ?? (tileX.get() + tilePitch / 2 < rowWidth / 2 ? 1 : -1),
+  )
   const offset = useMotionValue(0)
+  const opacity = useMotionValue(1)
   const x = useTransform([tileX, offset], ([t, o]: number[]) => t + o)
 
   useEffect(() => {
     if (isPresent) {
       const ctrl = animate(offset, dir * tilePitch, spring)
+      return () => ctrl.stop()
+    }
+    // Nav step: the previous item snaps out fast instead of folding back.
+    if (fastExitRef?.current) {
+      const ctrl = animate(opacity, 0, { duration: 0.1, ease: 'easeOut' })
+      ctrl.then(() => {
+        onExitComplete?.()
+        safeToRemove?.()
+      })
       return () => ctrl.stop()
     }
     const ctrl = animate(offset, 0, spring)
@@ -282,12 +341,13 @@ function SlidePanel({
       safeToRemove?.()
     })
     return () => ctrl.stop()
-  }, [isPresent, dir, tilePitch, offset, spring, safeToRemove, onExitComplete])
+  }, [isPresent, dir, tilePitch, offset, opacity, spring, fastExitRef, safeToRemove, onExitComplete])
 
   return (
     <motion.div
       style={{
         x,
+        opacity,
         position: 'absolute',
         top: 0,
         left: 0,
@@ -375,6 +435,7 @@ function VerticalPanel({
   dir,
   card,
   spring,
+  fastExitRef,
   onExitComplete,
 }: {
   project: Project
@@ -383,15 +444,26 @@ function VerticalPanel({
   dir: 1 | -1
   card: CardStyle
   spring: SpringOptions
+  fastExitRef?: { current: boolean }
   onExitComplete?: () => void
 }) {
   const [isPresent, safeToRemove] = usePresence()
   const offsetY = useMotionValue(0)
+  const opacity = useMotionValue(1)
   const x = useTransform(tileX, (t) => t)
 
   useEffect(() => {
     if (isPresent) {
       const ctrl = animate(offsetY, dir * verticalPitch, spring)
+      return () => ctrl.stop()
+    }
+    // Nav step: snap out fast instead of folding back into the tile.
+    if (fastExitRef?.current) {
+      const ctrl = animate(opacity, 0, { duration: 0.1, ease: 'easeOut' })
+      ctrl.then(() => {
+        onExitComplete?.()
+        safeToRemove?.()
+      })
       return () => ctrl.stop()
     }
     const ctrl = animate(offsetY, 0, spring)
@@ -400,13 +472,14 @@ function VerticalPanel({
       safeToRemove?.()
     })
     return () => ctrl.stop()
-  }, [isPresent, dir, verticalPitch, offsetY, spring, safeToRemove, onExitComplete])
+  }, [isPresent, dir, verticalPitch, offsetY, opacity, spring, fastExitRef, safeToRemove, onExitComplete])
 
   return (
     <motion.div
       style={{
         x,
         y: offsetY,
+        opacity,
         position: 'absolute',
         top: 0,
         left: 0,
@@ -433,7 +506,6 @@ export function ProjectConveyor({
   onClose?: () => void
   selectedId?: number | null
 }) {
-  const gridFaded = selectedId != null
   const containerRef = useRef<HTMLDivElement | null>(null)
 
   const dials = useDialKit(
@@ -476,6 +548,21 @@ export function ProjectConveyor({
   const introProgress = useMotionValue(0)
   const introStartedRef = useRef(false)
 
+  // Next/back navigation while focused. `navigating` keeps the grid faded
+  // through the brief selectedId → null → nextId window so the whole grid
+  // doesn't flash un-faded mid-step. `navLock` guards the sequence against
+  // re-entry (rapid wheel/keys). `navigateRef` holds the latest closure so
+  // the wheel/keydown listeners stay stable.
+  const [navigating, setNavigating] = useState(false)
+  const navLock = useRef(false)
+  const navigateRef = useRef<(dir: 1 | -1) => void>(() => {})
+  // True only while a nav step is exiting the previous item, so its panels
+  // snap out fast instead of doing the slow fold-back of a normal close.
+  const fastExitRef = useRef(false)
+
+  // Faded whenever something is focused, and held faded across a nav step.
+  const gridFaded = selectedId != null || navigating
+
   const [rowEl, setRowEl] = useState<HTMLDivElement | null>(null)
   const [tileEl, setTileEl] = useState<HTMLDivElement | null>(null)
   const [rowWidth, setRowWidth] = useState(0)
@@ -509,9 +596,12 @@ export function ProjectConveyor({
     if (!el) return
     const onWheel = (e: WheelEvent) => {
       e.preventDefault()
-      // Selection freezes the conveyor — wheel events are swallowed so the
-      // detail panel stays anchored to its tile.
-      if (selectedId != null) return
+      // While focused, a wheel gesture steps next/back instead of scrolling.
+      // navigate() guards re-entry, so one settled step per gesture.
+      if (selectedId != null) {
+        navigateRef.current(e.deltaY + e.deltaX > 0 ? 1 : -1)
+        return
+      }
       scrollTarget.set(scrollTarget.get() + (e.deltaY + e.deltaX) * dials.motion.wheelStep)
     }
     el.addEventListener('wheel', onWheel, { passive: false })
@@ -519,10 +609,27 @@ export function ProjectConveyor({
   }, [scrollTarget, dials.motion.wheelStep, selectedId])
 
   // When selection happens, snap the spring's target to the current value so
-  // any in-flight scroll motion stops drifting under the detail panel.
+  // any in-flight scroll motion stops drifting under the detail panel. Skip
+  // during a nav step — there scroll is already parked exactly at its target.
   useEffect(() => {
-    if (selectedId != null) scrollTarget.set(scroll.get())
+    if (selectedId != null && !navLock.current) scrollTarget.set(scroll.get())
   }, [selectedId, scrollTarget, scroll])
+
+  // Arrow keys step next/back while focused (←/↑ back, →/↓ next).
+  useEffect(() => {
+    if (selectedId == null) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+        e.preventDefault()
+        navigateRef.current(1)
+      } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+        e.preventDefault()
+        navigateRef.current(-1)
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [selectedId])
 
   // Kick off the file-in intro once dimensions are known. introProgress 0→1
   // shifts every tile from off-screen left to its resting serpentine position.
@@ -553,6 +660,43 @@ export function ProjectConveyor({
   const itemSpacing = totalLen / N
   const offPad = (segLen - rowWidth) / 2
 
+  // Step to the next/previous project in the sequence (wraps at the ends).
+  // Shifting scroll by one itemSpacing lands the neighbour project in the
+  // exact slot the current one occupies. We swap the selection straight from
+  // A → B (never through null) and start the scroll at the same instant, so
+  // the current panel's retract, the slide-into-slot, and the next panel's
+  // open all play concurrently in one animation window.
+  navigateRef.current = (dir: 1 | -1) => {
+    if (selectedId == null || navLock.current || itemSpacing <= 0) return
+    const idx = projects.findIndex((p) => p.id === selectedId)
+    if (idx < 0) return
+    const nextId = projects[(idx + dir + N) % N].id
+
+    navLock.current = true
+    fastExitRef.current = true
+    setNavigating(true)
+
+    const dest = scrollTarget.get() - dir * itemSpacing
+    scrollTarget.set(dest)
+    onSelect(nextId) // A snaps out fast + B opens, riding the in-flight scroll
+
+    // Release the re-entry lock once the conveyor has parked B in the slot.
+    let settled = false
+    const finish = () => {
+      if (settled) return
+      settled = true
+      unsub()
+      clearTimeout(timer)
+      fastExitRef.current = false
+      setNavigating(false)
+      navLock.current = false
+    }
+    const unsub = scroll.on('change', (v: number) => {
+      if (Math.abs(v - dest) < 0.5) finish()
+    })
+    const timer = setTimeout(finish, 1200)
+  }
+
   return (
     <>
       <div
@@ -582,6 +726,7 @@ export function ProjectConveyor({
                 index={i}
                 rowIdx={rowIdx}
                 scroll={scroll}
+                scrollTarget={scrollTarget}
                 introProgress={introProgress}
                 segLen={segLen}
                 totalLen={totalLen}
@@ -594,6 +739,8 @@ export function ProjectConveyor({
                 onClose={onClose}
                 selected={project.id === selectedId}
                 gridFaded={gridFaded}
+                navigating={navigating}
+                fastExitRef={fastExitRef}
                 card={{
                   radius: dials.cards.radius,
                   borderWidth: dials.cards.borderWidth,
@@ -607,6 +754,29 @@ export function ProjectConveyor({
           </div>
         ))}
       </div>
+
+      {selectedId != null && (
+        <>
+          <button
+            type="button"
+            onClick={() => navigateRef.current(-1)}
+            disabled={navigating}
+            aria-label="Previous project"
+            className="fixed top-1/2 left-4 z-30 -translate-y-1/2 bg-[#282828] border-2 border-[#C6B79C] outline outline-black px-3 py-2 text-white font-bold disabled:opacity-50"
+          >
+            ←
+          </button>
+          <button
+            type="button"
+            onClick={() => navigateRef.current(1)}
+            disabled={navigating}
+            aria-label="Next project"
+            className="fixed top-1/2 right-4 z-30 -translate-y-1/2 bg-[#282828] border-2 border-[#C6B79C] outline outline-black px-3 py-2 text-white font-bold disabled:opacity-50"
+          >
+            →
+          </button>
+        </>
+      )}
     </>
   )
 }
