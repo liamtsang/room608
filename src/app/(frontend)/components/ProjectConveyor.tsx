@@ -65,10 +65,12 @@ function Tile({
       <div className="p-2 flex flex-col gap-2 h-full">
         {thumb?.url ? (
           <motion.div
-            className="overflow-hidden border outline-2 aspect-[16/9] h-full relative"
+            className="rounded-md overflow-hidden outline-1 aspect-[16/9] h-full relative"
             animate={{
-              borderColor: faded ? 'rgba(255, 255, 255, 0)' : 'rgba(255, 255, 255, 1)',
               outlineColor: faded ? 'rgba(61, 61, 61, 0)' : 'rgba(61, 61, 61, 1)',
+              boxShadow: faded
+                ? 'inset 0px -3px 0px 0px rgba(61, 61, 61, 0)'
+                : 'inset 0px -3px 0px 0px rgba(61, 61, 61, 1)',
             }}
             transition={{ duration: 0.4, ease: 'easeInOut' }}
           >
@@ -96,7 +98,7 @@ function Tile({
             />
           </motion.div>
         ) : (
-          <div className="border border-white outline-2 outline-[#3D3D3D] bg-[#b3a488] aspect-[16/9] h-full" />
+          <div className="outline-2 outline-[#3D3D3D] bg-[#b3a488] aspect-[16/9] h-full" />
         )}
       </div>
     </motion.button>
@@ -115,6 +117,7 @@ function PathTile({
   offPad,
   rowWidth,
   tilePitch,
+  verticalPitch,
   onSelect,
   onClose,
   selected,
@@ -132,6 +135,7 @@ function PathTile({
   offPad: number
   rowWidth: number
   tilePitch: number
+  verticalPitch: number
   onSelect: (id: number) => void
   onClose?: () => void
   selected: boolean
@@ -185,6 +189,18 @@ function PathTile({
             rowWidth={rowWidth}
             tilePitch={tilePitch}
             onExitComplete={() => setPanelMounted(false)}
+          />
+        )}
+      </AnimatePresence>
+      <AnimatePresence>
+        {selected && verticalPitch > 0 && (
+          <VerticalPanel
+            key={`vpanel-${project.id}`}
+            project={project}
+            tileX={x}
+            verticalPitch={verticalPitch}
+            // top rows pop down, the bottom row pops up
+            dir={rowIdx === ROW_COUNT - 1 ? -1 : 1}
           />
         )}
       </AnimatePresence>
@@ -265,17 +281,85 @@ function DetailPanel({ project }: { project: Project }) {
   return (
     <div className="text-left h-full pointer-events-auto">
       <div className="p-2 flex flex-col gap-2 h-full">
-        <div className="overflow-hidden border border-white outline-2 outline-[#3D3D3D] aspect-[16/9] h-full bg-[#C6B79C] p-3 flex flex-col gap-2">
-          <div className="text-sm font-bold leading-tight">{project.title}</div>
-          <div className="text-xs opacity-80">{directorName(project)}</div>
-          {project.description && (
-            <div className="text-xs flex-1 overflow-y-auto pr-1">
+        <div className="shadow-[inset_0_-2px_black] overflow-hidden outline outline-black aspect-[16/9] h-full bg-[#C6B79C] flex flex-col gap-2">
+          {project.description ? (
+            <div className="text-sm flex-1 overflow-y-auto pr-1">
               <RichText data={project.description} />
             </div>
+          ) : (
+            <div className="text-xs opacity-60">No description.</div>
           )}
         </div>
       </div>
     </div>
+  )
+}
+
+// Title/credits card that pops vertically out from behind the selected tile —
+// down for the top rows, up for the bottom row. Mirrors SlidePanel's emerge-
+// from-behind motion on the Y axis. Four boxed quadrants: label / value ×2.
+function CreditCard({ project, dir }: { project: Project; dir: 1 | -1 }) {
+  // dir 1 = popping down → sit at the top of the slot (just below the tile);
+  // dir -1 = popping up → sit at the bottom of the slot (just above the tile).
+  return (
+    <div className="text-left h-full pointer-events-none">
+      <div
+        className={`p-2 flex flex-col gap-2 h-full ${dir === 1 ? 'justify-start' : 'justify-end'}`}
+      >
+        <div className="w-full bg-[#C6B79C] outline outline-black p-2 grid grid-cols-[auto_1fr] grid-rows-2 gap-2 content-center">
+          <div className="outline-1 outline-[#3D3D3D] px-3 py-2 text-sm text-center">Title</div>
+          <div className="outline-1 outline-[#3D3D3D] px-3 py-2 text-sm max-w-[30ch]">
+            {project.title}
+          </div>
+          <div className="outline-1 outline-[#3D3D3D] px-3 py-2 text-sm text-center">Director</div>
+          <div className="outline-1 outline-[#3D3D3D] px-3 py-2 text-sm">
+            {directorName(project)}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// Vertical analog of SlidePanel: rides on the selected tile's x (horizontal
+// alignment), springs a y offset to ±verticalPitch so the credit card emerges
+// from behind the tile into the adjacent row slot.
+function VerticalPanel({
+  project,
+  tileX,
+  verticalPitch,
+  dir,
+  onExitComplete,
+}: {
+  project: Project
+  tileX: MotionValue<number>
+  verticalPitch: number
+  dir: 1 | -1
+  onExitComplete?: () => void
+}) {
+  const [isPresent, safeToRemove] = usePresence()
+  const offsetY = useMotionValue(0)
+  const x = useTransform(tileX, (t) => t)
+
+  useEffect(() => {
+    if (isPresent) {
+      const ctrl = animate(offsetY, dir * verticalPitch, SLIDE_SPRING)
+      return () => ctrl.stop()
+    }
+    const ctrl = animate(offsetY, 0, SLIDE_SPRING)
+    ctrl.then(() => {
+      onExitComplete?.()
+      safeToRemove?.()
+    })
+    return () => ctrl.stop()
+  }, [isPresent, dir, verticalPitch, offsetY, safeToRemove, onExitComplete])
+
+  return (
+    <motion.div
+      style={{ x, y: offsetY, position: 'absolute', top: 0, left: 0, height: '100%', zIndex: 1 }}
+    >
+      <CreditCard project={project} dir={dir} />
+    </motion.div>
   )
 }
 
@@ -308,6 +392,7 @@ export function ProjectConveyor({
   const [tileEl, setTileEl] = useState<HTMLDivElement | null>(null)
   const [rowWidth, setRowWidth] = useState(0)
   const [tileWidth, setTileWidth] = useState(0)
+  const [tileHeight, setTileHeight] = useState(0)
 
   useEffect(() => {
     if (!rowEl) return
@@ -320,7 +405,11 @@ export function ProjectConveyor({
 
   useEffect(() => {
     if (!tileEl) return
-    const update = () => setTileWidth(tileEl.getBoundingClientRect().width)
+    const update = () => {
+      const rect = tileEl.getBoundingClientRect()
+      setTileWidth(rect.width)
+      setTileHeight(rect.height)
+    }
     update()
     const ro = new ResizeObserver(update)
     ro.observe(tileEl)
@@ -364,6 +453,9 @@ export function ProjectConveyor({
 
   const N = projects.length
   const tilePitch = tileWidth + TILE_GAP
+  // Row-to-row vertical pitch (tile height + the gap-4 between rows), used as
+  // the distance the credit card pops up/down out of the tile.
+  const verticalPitch = tileHeight + TILE_GAP
   // Pack items tightly when N supports it; otherwise stretch to keep
   // off-screen pad >= tileWidth so row-to-row teleports stay invisible.
   const baseSegLen = (N * tilePitch) / ROW_COUNT
@@ -387,7 +479,10 @@ export function ProjectConveyor({
           <div
             key={rowIdx}
             ref={rowIdx === 0 ? setRowEl : undefined}
-            className="overflow-hidden h-1/4 relative"
+            className="h-1/4 relative"
+            // clip the conveyor horizontally, but let the credit card pop out
+            // vertically (overflow-x:clip doesn't force overflow-y to auto)
+            style={{ overflowX: 'clip', overflowY: 'visible' }}
             onClick={(e) => {
               if (selectedId != null && e.target === e.currentTarget && onClose) onClose()
             }}
@@ -406,6 +501,7 @@ export function ProjectConveyor({
                 offPad={offPad}
                 rowWidth={rowWidth}
                 tilePitch={tilePitch}
+                verticalPitch={verticalPitch}
                 onSelect={onSelect}
                 onClose={onClose}
                 selected={project.id === selectedId}
