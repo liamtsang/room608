@@ -52,3 +52,6 @@ node_modules/
 # OpenNext
 .open-next
 .wrangler
+
+# Room 608 scrape cache (raw fetched pages; reviewed scraped-projects.json is tracked)
+src/scripts/data/raw/
