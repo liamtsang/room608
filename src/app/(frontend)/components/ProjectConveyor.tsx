@@ -17,10 +17,10 @@ import { useDialKit } from 'dialkit'
 import type { Media, Project } from '@/payload-types'
 
 const ROW_COUNT = 3
-const TILE_GAP = 16
+const TILE_GAP = 0
 // Wheel deltas land in big discrete jumps; scale down per-tick step so the
 // spring has room to smooth between events.
-const DEFAULT_WHEEL_STEP = 3
+const DEFAULT_WHEEL_STEP = 0.85
 const DEFAULT_SPRING = { stiffness: 158, damping: 28, mass: 0.4 }
 // Multiplier on tileWidth used as the minimum off-screen pad per row side.
 // 1 = exactly one tile of off-screen pad (smooth row-to-row teleport).
@@ -30,8 +30,10 @@ const OFFSCREEN = -99999
 // Intro: tiles file along the serpentine path as if scrolled forward.
 const INTRO_DURATION = 6
 const INTRO_EASE = [0.16, 1, 0.3, 1] as const
-// Slide-out detail panel motion.
-const SLIDE_SPRING = { type: 'spring' as const, stiffness: 200, damping: 25 }
+// Reveal motion for the detail panel slide and the credit-card pop. Authored
+// in DialKit's "simple" (visualDuration/bounce) mode.
+const DETAIL_SPRING = { type: 'spring' as const, visualDuration: 0.35, bounce: 0 }
+const CREDIT_SPRING = { type: 'spring' as const, visualDuration: 0.25, bounce: 0 }
 
 function firstImage(project: Project): Media | null {
   const images = (project.images ?? []).filter((img): img is Media => typeof img !== 'number')
@@ -441,20 +443,20 @@ export function ProjectConveyor({
         wheelStep: [DEFAULT_WHEEL_STEP, 0.05, 10, 0.05],
         scrollSpring: { type: 'spring', ...DEFAULT_SPRING },
         padFactor: [DEFAULT_PAD_FACTOR, 0, 3, 0.05],
-        detailSpring: { ...SLIDE_SPRING },
-        creditSpring: { ...SLIDE_SPRING },
+        detailSpring: { ...DETAIL_SPRING },
+        creditSpring: { ...CREDIT_SPRING },
       },
       cards: {
         gap: [TILE_GAP, 0, 64, 1],
-        radius: [6, 0, 32, 1], // rounded-md ≈ 6px
-        borderWidth: [3, 0, 16, 1],
-        borderColor: '#3d3d3d',
+        radius: [0, 0, 32, 1],
+        borderWidth: [4, 0, 16, 1],
+        borderColor: '#000000',
       },
       dots: {
-        bg: '#cbbbb9',
-        color: '#ad9f9d',
+        bg: '#e0e0e0',
+        color: '#919191',
         size: [2, 0, 12, 1],
-        space: [32, 4, 96, 1],
+        space: [64, 4, 96, 1],
       },
     },
     { id: 'conveyor', persist: true }, // tweaks survive reloads
