@@ -70,26 +70,59 @@ function pathX(s: number, p: number, { index, rowIdx, itemSpacing, totalLen, seg
 // taste — neutrals desaturate, hues recolor.
 const FADE_TINT = '#C6B79C'
 
-type CardStyle = { radius: number; borderWidth: number; borderColor: string }
+type CardStyle = {
+  radius: number
+  borderWidth: number
+  borderColor: string
+  hoverScale: number
+  tapScale: number
+}
+
+type FadeStyle = {
+  tint: string
+  bgOpacity: number
+  fadedOpacity: number
+  duration: number
+  fastExit: number
+  restore: number
+}
 
 function Tile({
   project,
   onClick,
   faded,
   card,
+  fade,
 }: {
   project: Project
   onClick: () => void
   faded: boolean
   card: CardStyle
+  fade: FadeStyle
 }) {
   const thumb = firstImage(project)
+  const scan =
+    project.scanEffect && typeof project.scanEffect === 'object' ? project.scanEffect : null
+  const [hovered, setHovered] = useState(false)
+  const videoRef = useRef<HTMLVideoElement>(null)
   return (
     <motion.button
       type="button"
       onClick={onClick}
-      whileHover={{ scale: 1.01, zIndex: 2 }}
-      whileTap={{ scale: 0.97 }}
+      whileHover={{ scale: card.hoverScale, zIndex: 2 }}
+      whileTap={{ scale: card.tapScale }}
+      onHoverStart={() => {
+        setHovered(true)
+        void videoRef.current?.play()
+      }}
+      onHoverEnd={() => {
+        setHovered(false)
+        const video = videoRef.current
+        if (video) {
+          video.pause()
+          video.currentTime = 0
+        }
+      }}
       className="text-left h-full"
     >
       <div className="p-2 flex flex-col gap-2 h-full">
@@ -105,18 +138,18 @@ function Tile({
               outlineColor: faded ? `${card.borderColor}00` : `${card.borderColor}ff`,
               borderBottomColor: faded ? `${card.borderColor}00` : `${card.borderColor}ff`,
             }}
-            transition={{ duration: 0.4, ease: 'easeInOut' }}
+            transition={{ duration: fade.duration, ease: 'easeInOut' }}
           >
-            {/* Color-blended bg layer, always at 50% opacity. */}
+            {/* Color-blended bg layer revealed as the foreground fades. */}
             <div
               className="absolute inset-0 pointer-events-none"
               style={{
                 backgroundImage: `url(${thumb.url})`,
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
-                backgroundColor: FADE_TINT,
+                backgroundColor: fade.tint,
                 backgroundBlendMode: 'color',
-                opacity: 0.5,
+                opacity: fade.bgOpacity,
               }}
             />
             {/* Foreground image fades out to reveal the bg layer. Blend mode
@@ -126,9 +159,25 @@ function Tile({
               alt={thumb.alt ?? project.title}
               draggable={false}
               className="w-full h-full object-cover select-none relative"
-              animate={{ opacity: faded ? 0 : 1 }}
-              transition={{ duration: 0.4, ease: 'easeInOut' }}
+              animate={{ opacity: faded ? fade.fadedOpacity : 1 }}
+              transition={{ duration: fade.duration, ease: 'easeInOut' }}
             />
+            {/* Laser-scan overlay: screen-blend drops the black, leaving only the
+                laser over the photo. Only loads/plays on hover. */}
+            {scan?.url && (
+              <motion.video
+                ref={videoRef}
+                src={scan.url}
+                muted
+                playsInline
+                preload="none"
+                className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+                style={{ mixBlendMode: 'screen' }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: hovered ? 0.6 : 0 }}
+                transition={{ duration: 0.25, ease: 'easeInOut' }}
+              />
+            )}
           </motion.div>
         ) : (
           <div
@@ -162,6 +211,7 @@ function PathTile({
   navigating,
   fastExitRef,
   card,
+  fade,
   detailSpring,
   creditSpring,
   innerRef,
@@ -186,6 +236,7 @@ function PathTile({
   navigating: boolean
   fastExitRef: { current: boolean }
   card: CardStyle
+  fade: FadeStyle
   detailSpring: SpringOptions
   creditSpring: SpringOptions
   innerRef?: (el: HTMLDivElement | null) => void
@@ -250,6 +301,7 @@ function PathTile({
             spring={detailSpring}
             dirOverride={dirOverride}
             fastExitRef={fastExitRef}
+            fastExitDuration={fade.fastExit}
             onExitComplete={() => setPanelMounted(false)}
           />
         )}
@@ -264,6 +316,7 @@ function PathTile({
             card={card}
             spring={creditSpring}
             fastExitRef={fastExitRef}
+            fastExitDuration={fade.fastExit}
             // top rows pop down, the bottom row pops up
             dir={rowIdx === ROW_COUNT - 1 ? -1 : 1}
           />
@@ -280,9 +333,9 @@ function PathTile({
           zIndex: panelAbove ? 2 : 0,
         }}
         animate={{ opacity: retracting ? 0 : 1 }}
-        transition={{ duration: retracting ? 0.1 : 0.4, ease: 'easeOut' }}
+        transition={{ duration: retracting ? fade.fastExit : fade.restore, ease: 'easeOut' }}
       >
-        <Tile project={project} onClick={handleTileClick} faded={tileFaded} card={card} />
+        <Tile project={project} onClick={handleTileClick} faded={tileFaded} card={card} fade={fade} />
       </motion.div>
     </>
   )
@@ -301,6 +354,7 @@ function SlidePanel({
   spring,
   dirOverride,
   fastExitRef,
+  fastExitDuration = 0.1,
   onExitComplete,
 }: {
   project: Project
@@ -311,6 +365,7 @@ function SlidePanel({
   spring: SpringOptions
   dirOverride?: 1 | -1
   fastExitRef?: { current: boolean }
+  fastExitDuration?: number
   onExitComplete?: () => void
 }) {
   const [isPresent, safeToRemove] = usePresence()
@@ -328,7 +383,7 @@ function SlidePanel({
     }
     // Nav step: the previous item snaps out fast instead of folding back.
     if (fastExitRef?.current) {
-      const ctrl = animate(opacity, 0, { duration: 0.1, ease: 'easeOut' })
+      const ctrl = animate(opacity, 0, { duration: fastExitDuration, ease: 'easeOut' })
       ctrl.then(() => {
         onExitComplete?.()
         safeToRemove?.()
@@ -341,7 +396,18 @@ function SlidePanel({
       safeToRemove?.()
     })
     return () => ctrl.stop()
-  }, [isPresent, dir, tilePitch, offset, opacity, spring, fastExitRef, safeToRemove, onExitComplete])
+  }, [
+    isPresent,
+    dir,
+    tilePitch,
+    offset,
+    opacity,
+    spring,
+    fastExitRef,
+    fastExitDuration,
+    safeToRemove,
+    onExitComplete,
+  ])
 
   return (
     <motion.div
@@ -436,6 +502,7 @@ function VerticalPanel({
   card,
   spring,
   fastExitRef,
+  fastExitDuration = 0.1,
   onExitComplete,
 }: {
   project: Project
@@ -445,6 +512,7 @@ function VerticalPanel({
   card: CardStyle
   spring: SpringOptions
   fastExitRef?: { current: boolean }
+  fastExitDuration?: number
   onExitComplete?: () => void
 }) {
   const [isPresent, safeToRemove] = usePresence()
@@ -459,7 +527,7 @@ function VerticalPanel({
     }
     // Nav step: snap out fast instead of folding back into the tile.
     if (fastExitRef?.current) {
-      const ctrl = animate(opacity, 0, { duration: 0.1, ease: 'easeOut' })
+      const ctrl = animate(opacity, 0, { duration: fastExitDuration, ease: 'easeOut' })
       ctrl.then(() => {
         onExitComplete?.()
         safeToRemove?.()
@@ -472,7 +540,18 @@ function VerticalPanel({
       safeToRemove?.()
     })
     return () => ctrl.stop()
-  }, [isPresent, dir, verticalPitch, offsetY, opacity, spring, fastExitRef, safeToRemove, onExitComplete])
+  }, [
+    isPresent,
+    dir,
+    verticalPitch,
+    offsetY,
+    opacity,
+    spring,
+    fastExitRef,
+    fastExitDuration,
+    safeToRemove,
+    onExitComplete,
+  ])
 
   return (
     <motion.div
@@ -517,12 +596,25 @@ export function ProjectConveyor({
         padFactor: [DEFAULT_PAD_FACTOR, 0, 3, 0.05],
         detailSpring: { ...DETAIL_SPRING },
         creditSpring: { ...CREDIT_SPRING },
+        introDuration: [INTRO_DURATION, 0, 12, 0.5],
+        navSettle: [0.5, 0.05, 5, 0.05], // scroll-arrival threshold that ends a nav step
+        navTimeout: [1200, 200, 4000, 50], // ms fallback if the scroll never settles
       },
       cards: {
         gap: [TILE_GAP, 0, 64, 1],
         radius: [0, 0, 32, 1],
         borderWidth: [4, 0, 16, 1],
         borderColor: '#000000',
+        hoverScale: [1.01, 1, 1.25, 0.01],
+        tapScale: [0.97, 0.8, 1, 0.01],
+      },
+      fade: {
+        tint: FADE_TINT, // color blended into the duplicate bg layer when faded
+        bgOpacity: [0.5, 0, 1, 0.05], // opacity of that tinted bg layer
+        fadedOpacity: [0, 0, 1, 0.05], // target opacity of a faded tile's image
+        duration: [0.4, 0, 2, 0.05], // fade-to-tint / outline fade duration
+        fastExit: [0.1, 0, 1, 0.01], // nav: how fast the leaving item snaps out
+        restore: [0.4, 0, 2, 0.05], // nav: how slowly it eases back to a grid tile
       },
       dots: {
         bg: '#e0e0e0',
@@ -638,11 +730,11 @@ export function ProjectConveyor({
     if (rowWidth <= 0 || tileWidth <= 0) return
     introStartedRef.current = true
     const controls = animate(introProgress, 1, {
-      duration: INTRO_DURATION,
+      duration: dials.motion.introDuration,
       ease: INTRO_EASE,
     })
     return () => controls.stop()
-  }, [rowWidth, tileWidth, introProgress])
+  }, [rowWidth, tileWidth, introProgress, dials.motion.introDuration])
 
   if (projects.length === 0) return null
 
@@ -692,9 +784,9 @@ export function ProjectConveyor({
       navLock.current = false
     }
     const unsub = scroll.on('change', (v: number) => {
-      if (Math.abs(v - dest) < 0.5) finish()
+      if (Math.abs(v - dest) < dials.motion.navSettle) finish()
     })
-    const timer = setTimeout(finish, 1200)
+    const timer = setTimeout(finish, dials.motion.navTimeout)
   }
 
   return (
@@ -745,6 +837,16 @@ export function ProjectConveyor({
                   radius: dials.cards.radius,
                   borderWidth: dials.cards.borderWidth,
                   borderColor: dials.cards.borderColor,
+                  hoverScale: dials.cards.hoverScale,
+                  tapScale: dials.cards.tapScale,
+                }}
+                fade={{
+                  tint: dials.fade.tint,
+                  bgOpacity: dials.fade.bgOpacity,
+                  fadedOpacity: dials.fade.fadedOpacity,
+                  duration: dials.fade.duration,
+                  fastExit: dials.fade.fastExit,
+                  restore: dials.fade.restore,
                 }}
                 detailSpring={dials.motion.detailSpring as SpringOptions}
                 creditSpring={dials.motion.creditSpring as SpringOptions}

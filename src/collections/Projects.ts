@@ -83,5 +83,15 @@ export const Projects: CollectionConfig = {
       relationTo: 'media',
       hasMany: true,
     },
+    {
+      name: 'scanEffect',
+      label: 'Scan effect (hover overlay)',
+      type: 'upload',
+      relationTo: 'media',
+      required: false,
+      admin: {
+        description: 'Optional laser-scan video overlaid on hover. Black background, screen-blended.',
+      },
+    },
   ],
 }

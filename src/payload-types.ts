@@ -210,6 +210,10 @@ export interface Project {
     [k: string]: unknown;
   } | null;
   images?: (number | Media)[] | null;
+  /**
+   * Optional laser-scan video overlaid on hover. Black background, screen-blended.
+   */
+  scanEffect?: (number | null) | Media;
   updatedAt: string;
   createdAt: string;
 }
@@ -352,6 +356,7 @@ export interface ProjectsSelect<T extends boolean = true> {
       };
   description?: T;
   images?: T;
+  scanEffect?: T;
   updatedAt?: T;
   createdAt?: T;
 }

@@ -26,7 +26,9 @@
 *,
 *::before,
 *::after {
-  cursor: url('/Frame%2035.svg') 17 18, auto;
+  cursor:
+    url('/crosshair_red.svg') 17 18,
+    auto;
 }
 
 html {
