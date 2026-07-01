@@ -214,6 +214,10 @@ export interface Project {
    * Optional laser-scan video overlaid on hover. Black background, screen-blended.
    */
   scanEffect?: (number | null) | Media;
+  /**
+   * Vimeo video URL. For unlisted videos keep the privacy hash, e.g. https://player.vimeo.com/video/123456789?h=abcdef0123
+   */
+  vimeoUrl?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -357,6 +361,7 @@ export interface ProjectsSelect<T extends boolean = true> {
   description?: T;
   images?: T;
   scanEffect?: T;
+  vimeoUrl?: T;
   updatedAt?: T;
   createdAt?: T;
 }

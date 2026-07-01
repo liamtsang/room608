@@ -75,6 +75,7 @@ interface ScrapedProject {
   skip: boolean
   overwriteDescription: boolean
   scrapedDate: string | null
+  vimeoUrl: string | null
   synopsisParagraphs: string[]
   credits: Credit[]
   attributionLines: string[]
@@ -143,6 +144,16 @@ function extractDate(json: any): string | null {
   }
 }
 
+/** Extract the Vimeo player URL (with privacy hash) from the page's mainContent HTML. */
+function extractVimeoUrl(mainContent: string): string | null {
+  const m = mainContent.match(/player\.vimeo\.com\/video\/(\d+)(?:\?(?:amp;)?h=([0-9a-f]+))?/i)
+  if (!m) return null
+  const [, id, hash] = m
+  return hash
+    ? `https://player.vimeo.com/video/${id}?h=${hash}`
+    : `https://player.vimeo.com/video/${id}`
+}
+
 function scrapeOne(slug: string): ScrapedProject {
   const rawPath = path.join(RAW_DIR, `${slug}.json`)
   let body: string
@@ -156,6 +167,7 @@ function scrapeOne(slug: string): ScrapedProject {
   const json = JSON.parse(body)
   const mainContent: string = json.mainContent || ''
   const rawText = htmlToText(mainContent)
+  const vimeoUrl = extractVimeoUrl(mainContent)
 
   const allLines = htmlToLines(mainContent)
   const scrapedTitle = allLines[0] || ''
@@ -177,6 +189,7 @@ function scrapeOne(slug: string): ScrapedProject {
     warnings.push('long attribution line — possible synopsis misplaced (review)')
   if (synopsisParagraphs.some((p) => p.length < 40 && !/[.!?]$/.test(p)))
     warnings.push('short synopsis line — possible heading (review)')
+  if (!vimeoUrl) warnings.push('no Vimeo embed found')
 
   const matchStatus: ScrapedProject['matchStatus'] = KNOWN[slug]
     ? 'matched'
@@ -195,6 +208,7 @@ function scrapeOne(slug: string): ScrapedProject {
     skip: matchStatus === 'unmatched',
     overwriteDescription: false,
     scrapedDate: extractDate(json),
+    vimeoUrl,
     synopsisParagraphs,
     credits,
     attributionLines: leftover,

@@ -93,5 +93,15 @@ export const Projects: CollectionConfig = {
         description: 'Optional laser-scan video overlaid on hover. Black background, screen-blended.',
       },
     },
+    {
+      name: 'vimeoUrl',
+      label: 'Vimeo URL',
+      type: 'text',
+      required: false,
+      admin: {
+        description:
+          'Vimeo video URL. For unlisted videos keep the privacy hash, e.g. https://player.vimeo.com/video/123456789?h=abcdef0123',
+      },
+    },
   ],
 }

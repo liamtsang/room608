@@ -36,6 +36,7 @@ interface ScrapedProject {
   overwriteDescription: boolean
   scrapedDate: string | null
   date?: string | null
+  vimeoUrl?: string | null
   synopsisParagraphs: string[]
   credits: Credit[]
   warnings: string[]
@@ -119,6 +120,7 @@ async function main() {
 
       const data: any = { credits }
       if (writeDesc) data.description = description
+      if (rec.vimeoUrl) data.vimeoUrl = rec.vimeoUrl
 
       const descNote = writeDesc
         ? jammed
@@ -159,7 +161,13 @@ async function main() {
     if (!DRY_RUN) {
       await payload.create({
         collection: 'projects',
-        data: { title: rec.title, date, description: description ?? undefined, credits } as any,
+        data: {
+          title: rec.title,
+          date,
+          description: description ?? undefined,
+          credits,
+          vimeoUrl: rec.vimeoUrl ?? undefined,
+        } as any,
       })
     }
     created++

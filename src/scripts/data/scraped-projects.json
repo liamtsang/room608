@@ -7,6 +7,7 @@
     "skip": false,
     "overwriteDescription": false,
     "scrapedDate": "2023-07-03",
+    "vimeoUrl": null,
     "synopsisParagraphs": [
       "Does infinity exist? Can we experience the Infinite? In an animated film (created by artists from 10 countries) the world's most cutting-edge scientists and mathematicians go in search of the infinite and its mind-bending implications for the universe.",
       "A Trip to Infinity made the Netflix Top 10 list in 32 countries and a 4 1/2 minute scene went viral on TikTok with 18 million views in a week."
@@ -45,7 +46,9 @@
       "Room 608 & MakeMake Entertainment"
     ],
     "rawText": "A TRIP TO INFINITY\nDoes infinity exist? Can we experience the Infinite? In an animated film (created by artists from 10 countries) the world's most cutting-edge scientists and mathematicians go in search of the infinite and its mind-bending implications for the universe.\nA Trip to Infinity made the Netflix Top 10 list in 32 countries and a 4 1/2 minute scene went viral on TikTok with 18 million views in a week.\nDirectors\nJONATHAN HALPERIN\nDREW TAKAHASHI\nExecutive Producer MARK MANNUCCI\nWriters\nJONATHAN HALPERIN\nALEX RICCIARDI\nEditor ALEX RICCIARDI\nMusic EFRIM MANUEL MENUCK\nRoom 608 & MakeMake Entertainment",
-    "warnings": []
+    "warnings": [
+      "no Vimeo embed found"
+    ]
   },
   {
     "slug": "a-year-in-space",
@@ -55,6 +58,7 @@
     "skip": false,
     "overwriteDescription": false,
     "scrapedDate": "2016-04-22",
+    "vimeoUrl": "https://player.vimeo.com/video/159863182",
     "synopsisParagraphs": [
       "Follow astronaut Scott Kelly’s record-breaking 12-month mission on the International Space Station, from launch to landing, as NASA charts the effects of long-duration spaceflight. A Year In Space is the story of life moving at the 17,500 miles per hour, of the human urge – the need – to explore no matter the cost or consequences."
     ],
@@ -92,6 +96,7 @@
     "skip": false,
     "overwriteDescription": false,
     "scrapedDate": "2018-10-17",
+    "vimeoUrl": "https://player.vimeo.com/video/295674706",
     "synopsisParagraphs": [
       "The journey into Deep Space will be one of humanity’s greatest scientific achievements and it will only be accomplished through a series of bold steps. Scott Kelly’s Year in Space was one of those. Now a new generation of astronauts is training to take the next ones. Jessica Meir and Victor Glover are in line to be among the few human beings to venture out of Earth orbit – this time beyond the moon, into deep space and possibly to Mars."
     ],
@@ -129,6 +134,7 @@
     "skip": false,
     "overwriteDescription": false,
     "scrapedDate": "2025-08-10",
+    "vimeoUrl": "https://player.vimeo.com/video/1106798759?h=119c8b280c",
     "synopsisParagraphs": [
       "A panel of influential figures talks through ethical dilemmas based on a real-life scenario."
     ],
@@ -180,6 +186,7 @@
     "skip": false,
     "overwriteDescription": false,
     "scrapedDate": "2015-05-11",
+    "vimeoUrl": "https://player.vimeo.com/video/127499213",
     "synopsisParagraphs": [
       "Buried in Burma is the story of a British potato farmer's quixotic quest to dig up a squadron of Spitfire aircraft he believes were buried at the end of WWII. When an improbable partner steps forward to offer help, the journey becomes a farce where shovels and spades unearth delusion and deceit."
     ],
@@ -213,6 +220,7 @@
     "skip": false,
     "overwriteDescription": false,
     "scrapedDate": "2014-08-05",
+    "vimeoUrl": "https://player.vimeo.com/video/68718990",
     "synopsisParagraphs": [
       "An immersion into cutting edge science."
     ],
@@ -242,6 +250,7 @@
     "skip": false,
     "overwriteDescription": false,
     "scrapedDate": "2023-06-29",
+    "vimeoUrl": null,
     "synopsisParagraphs": [
       "The epic tale of James Watson, the quirky, irascible co-discoverer of the structure of DNA."
     ],
@@ -292,7 +301,8 @@
     ],
     "rawText": "DECODING WATSON\nThe epic tale of James Watson, the quirky, irascible co-discoverer of the structure of DNA.\nDirector/Producer MARK MANNUCCI\nExecutive Producer JONATHAN HALPERIN\nAssociate Producer HANNAH MEAGHER\nEditor ALEX RICCIARDI\nAnimation\nROBERTO BIADI\nCHRISTIAN STANGL\nDREW TAKAHASHI\nRICHARD TRAMMELL\nMusic AARON KEANE\nRoom 608 & American Masters",
     "warnings": [
-      "compound role Director+Producer -> 1 name(s)"
+      "compound role Director+Producer -> 1 name(s)",
+      "no Vimeo embed found"
     ]
   },
   {
@@ -303,6 +313,7 @@
     "skip": false,
     "overwriteDescription": false,
     "scrapedDate": "2023-06-29",
+    "vimeoUrl": "https://player.vimeo.com/video/841006879?h=555b7c7da7",
     "synopsisParagraphs": [
       "Follow Dr. Anthony Fauci as he grapples with the COVID-19 pandemic and his 50-year career as the nation’s leading public health advocate. American Masters: Dr. Tony Fauci reveals a rarely seen side of the physician, husband and father as he confronts political backlash, a new administration and questions of the future."
     ],
@@ -342,6 +353,7 @@
     "skip": false,
     "overwriteDescription": false,
     "scrapedDate": "2016-04-29",
+    "vimeoUrl": "https://player.vimeo.com/video/160950964",
     "synopsisParagraphs": [
       "A Tattoo To Remember",
       "Pausing Death"
@@ -394,6 +406,7 @@
     "skip": false,
     "overwriteDescription": false,
     "scrapedDate": "2014-08-05",
+    "vimeoUrl": "https://player.vimeo.com/video/67921740",
     "synopsisParagraphs": [
       "Unravelling the web of corruption and mystery surrounding the murders of six silverback gorillas in the Virunga National Forest."
     ],
@@ -417,6 +430,7 @@
     "skip": false,
     "overwriteDescription": false,
     "scrapedDate": "2023-06-29",
+    "vimeoUrl": "https://player.vimeo.com/video/841014975?h=25a556bd01",
     "synopsisParagraphs": [
       "It's time to be kind to your mind. In partnership with Headspace, this 8-episode Netflix series shows how meditation can help in your daily life. From tackling stress to embracing gratitude, each episode first teaches the basics and techniques of the practice, and then concludes with a guided meditation. Push play, close your eyes, and explore the many benefits of meditation."
     ],
@@ -444,6 +458,7 @@
     "skip": false,
     "overwriteDescription": false,
     "scrapedDate": "2014-08-05",
+    "vimeoUrl": "https://player.vimeo.com/video/67919030",
     "synopsisParagraphs": [
       "The science of growing organs and body parts in the lab."
     ],
@@ -485,6 +500,7 @@
     "skip": false,
     "overwriteDescription": false,
     "scrapedDate": "2018-10-17",
+    "vimeoUrl": null,
     "synopsisParagraphs": [
       "Ed Yong, author of the New York Times bestseller I Contain Multitudes, has teamed up with HHMI Tangled Banks Studios for a series that explores the strange, wondrous, and vital realm of the microscopic. Meet scientists and the microbes that captivate them. Watch fascinating animal behavior that makes sense only in light of a microbial backstory. Discover how the living world that we see is shaped by an invisible world.",
       "Our embrace of microbes, and theirs of us, is a pillar of life on Earth."
@@ -518,7 +534,8 @@
     "attributionLines": [],
     "rawText": "I CONTAIN MULTITUDES\nEd Yong, author of the New York Times bestseller I Contain Multitudes, has teamed up with HHMI Tangled Banks Studios for a series that explores the strange, wondrous, and vital realm of the microscopic. Meet scientists and the microbes that captivate them. Watch fascinating animal behavior that makes sense only in light of a microbial backstory. Discover how the living world that we see is shaped by an invisible world.\nOur embrace of microbes, and theirs of us, is a pillar of life on Earth.\nDirectors, Writers & Executive Producers\nJONATHAN HALPERIN & MARK MANNUCCI\nWatch the full series online on Youtube .",
     "warnings": [
-      "compound role Director+Writer+Executive Producer -> 2 name(s)"
+      "compound role Director+Writer+Executive Producer -> 2 name(s)",
+      "no Vimeo embed found"
     ]
   },
   {
@@ -529,6 +546,7 @@
     "skip": false,
     "overwriteDescription": false,
     "scrapedDate": "2014-08-05",
+    "vimeoUrl": "https://player.vimeo.com/video/67298698",
     "synopsisParagraphs": [
       "The death penalty in Texas told through the lives of three condemned men."
     ],
@@ -566,6 +584,7 @@
     "skip": false,
     "overwriteDescription": false,
     "scrapedDate": "2014-08-05",
+    "vimeoUrl": "https://player.vimeo.com/video/67919029",
     "synopsisParagraphs": [
       "An inside look at the controversial Guantanamo Bay detention camp."
     ],
@@ -595,6 +614,7 @@
     "skip": false,
     "overwriteDescription": false,
     "scrapedDate": "2014-08-05",
+    "vimeoUrl": "https://player.vimeo.com/video/67917409",
     "synopsisParagraphs": [
       "The search for life in our solar system."
     ],
@@ -632,6 +652,7 @@
     "skip": false,
     "overwriteDescription": false,
     "scrapedDate": "2014-08-05",
+    "vimeoUrl": "https://player.vimeo.com/video/68568175",
     "synopsisParagraphs": [
       "The story of what happens to our brains and bodies when we die."
     ],
@@ -669,6 +690,7 @@
     "skip": false,
     "overwriteDescription": false,
     "scrapedDate": "2014-08-05",
+    "vimeoUrl": "https://player.vimeo.com/video/67921739",
     "synopsisParagraphs": [
       "After the sudden death of their leader, the disciples of Jesus must find a way forward without him."
     ],
@@ -710,6 +732,7 @@
     "skip": false,
     "overwriteDescription": false,
     "scrapedDate": "2014-08-05",
+    "vimeoUrl": "https://player.vimeo.com/video/102637893",
     "synopsisParagraphs": [
       "Inside a world-class expedition in search of the deepest cave on Earth."
     ],
@@ -745,6 +768,7 @@
     "skip": false,
     "overwriteDescription": false,
     "scrapedDate": "2016-04-29",
+    "vimeoUrl": "https://player.vimeo.com/video/126828606",
     "synopsisParagraphs": [
       "The Day the '60s Died chronicles May 1970, the month in which four students were shot dead at Kent State. The mayhem that followed has been called the most divisive moment in American history since the Civil War. The Los Angeles Times wrote about the film: “Let[s] you taste the urgency of the moment.” Variety : “First rate...talks to all the right people.” The Cleveland Plain Dealer : “Brilliant job of bringing that violent, war-torn time into clear historical focus.” The New York Review of Books : “This is a remarkable film, with its parallel portraits of two sets of young Americans misused by the country’s leaders.”"
     ],
@@ -791,6 +815,7 @@
     "skip": false,
     "overwriteDescription": false,
     "scrapedDate": "2018-12-17",
+    "vimeoUrl": "https://player.vimeo.com/video/295675951",
     "synopsisParagraphs": [
       "The History of White People in America is the story of how skin became color, color became race, race became power. In 15 animated music videos, we tell the racial history of America. The first episode premiered at the 2018 Tribeca Film Festival."
     ],
@@ -812,6 +837,7 @@
     "skip": false,
     "overwriteDescription": false,
     "scrapedDate": "2016-05-05",
+    "vimeoUrl": "https://player.vimeo.com/video/144764165",
     "synopsisParagraphs": [
       "You’re sitting just off of Times Square in midtown Manhattan in 2015 – but what are you sitting on top of? Zooming back a million years to look at the evolution of this little patch of land, this film offers an awe-inspiring view of the speed and ferocity with which humans have utterly transformed the globe."
     ],
@@ -848,6 +874,7 @@
     "skip": false,
     "overwriteDescription": false,
     "scrapedDate": "2014-08-05",
+    "vimeoUrl": "https://player.vimeo.com/video/72420787",
     "synopsisParagraphs": [
       "An immersion into the airport you never see."
     ],
@@ -889,6 +916,7 @@
     "skip": false,
     "overwriteDescription": false,
     "scrapedDate": "2016-04-29",
+    "vimeoUrl": "https://player.vimeo.com/video/164739931",
     "synopsisParagraphs": [
       "Kelsey Avatar Segment",
       "Turning Science Into Cures - The Jackson Laboratory"
