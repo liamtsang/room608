@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type SyntheticEvent } from 'react'
 import {
   AnimatePresence,
   animate,
@@ -130,6 +130,12 @@ function Tile({
   const showVideo = focused && !!vimeoSrc
   const [hovered, setHovered] = useState(false)
   const videoRef = useRef<HTMLVideoElement>(null)
+  const frameRef = useRef<HTMLDivElement>(null)
+
+  const goFullscreen = (e: SyntheticEvent) => {
+    e.stopPropagation()
+    frameRef.current?.requestFullscreen?.().catch(() => {})
+  }
   return (
     <motion.button
       type="button"
@@ -153,6 +159,7 @@ function Tile({
       <div className="p-2 flex flex-col gap-2 h-full">
         {thumb?.url ? (
           <motion.div
+            ref={frameRef}
             className="overflow-hidden outline-1 aspect-[16/9] h-full relative"
             style={{
               borderRadius: card.radius,
@@ -205,21 +212,56 @@ function Tile({
             )}
             {/* Focused Vimeo background player: mounts only while focused (so we
                 never load 20+ videos at once), crossfades in over the still
-                image and loops muted with no controls. */}
+                image and loops muted with no controls. The iframe is oversized
+                a few px and centered so Vimeo's hairline pillarbox is clipped
+                by the frame — no gap on the sides. */}
             <AnimatePresence>
               {showVideo && (
-                <motion.iframe
+                <motion.div
                   key="vimeo"
-                  src={vimeoSrc!}
-                  title={project.title}
-                  allow="autoplay; fullscreen; picture-in-picture"
-                  className="absolute inset-0 w-full h-full pointer-events-none"
-                  style={{ border: 0 }}
+                  className="absolute inset-0 overflow-hidden"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: fade.duration, ease: 'easeInOut' }}
-                />
+                >
+                  <iframe
+                    src={vimeoSrc!}
+                    title={project.title}
+                    allow="autoplay; fullscreen; picture-in-picture"
+                    className="absolute top-1/2 left-1/2 pointer-events-none"
+                    style={{
+                      border: 0,
+                      width: 'calc(100% + 16px)',
+                      height: 'calc(100% + 16px)',
+                      transform: 'translate(-50%, -50%)',
+                    }}
+                  />
+                  <div
+                    role="button"
+                    tabIndex={0}
+                    aria-label="Fullscreen"
+                    onClick={goFullscreen}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') goFullscreen(e)
+                    }}
+                    className="absolute bottom-2 right-2 grid place-items-center w-8 h-8 rounded bg-black/45 text-white/90 hover:bg-black/65 pointer-events-auto cursor-pointer transition-colors"
+                  >
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      aria-hidden="true"
+                    >
+                      <path d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M8 21H5a2 2 0 0 1-2-2v-3M16 21h3a2 2 0 0 0 2-2v-3" />
+                    </svg>
+                  </div>
+                </motion.div>
               )}
             </AnimatePresence>
           </motion.div>

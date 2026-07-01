@@ -26,6 +26,12 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <body>
+        {/* Warm the Vimeo connections at page load so focused background videos
+            start faster (player doc, thumbnails/assets, and video segments). */}
+        <link rel="preconnect" href="https://player.vimeo.com" />
+        <link rel="preconnect" href="https://i.vimeocdn.com" />
+        <link rel="preconnect" href="https://f.vimeocdn.com" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://vod-adaptive-ak.vimeocdn.com" />
         <RoomProvider>
           <div className="block h-[100dvh]">
             <main className="relative flex-1 h-[100dvh] overflow-hidden">
