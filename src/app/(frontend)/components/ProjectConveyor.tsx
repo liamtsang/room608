@@ -40,6 +40,25 @@ function firstImage(project: Project): Media | null {
   return images[0] ?? null
 }
 
+// Turn a stored Vimeo URL into a background-player embed: muted, looping,
+// controls-free autoplay (Vimeo's background=1 mode). Preserves the privacy
+// hash (?h=) that unlisted videos need. Returns null if no id can be parsed.
+function vimeoBackgroundSrc(raw: string | null | undefined): string | null {
+  if (!raw) return null
+  const id = raw.match(/vimeo\.com\/(?:video\/)?(\d+)/)?.[1]
+  if (!id) return null
+  const hash = raw.match(/[?&](?:amp;)?h=([0-9a-f]+)/i)?.[1]
+  const params = new URLSearchParams({
+    background: '1',
+    autoplay: '1',
+    muted: '1',
+    loop: '1',
+    autopause: '0',
+  })
+  if (hash) params.set('h', hash)
+  return `https://player.vimeo.com/video/${id}?${params}`
+}
+
 function mod(n: number, m: number) {
   return ((n % m) + m) % m
 }
@@ -91,18 +110,24 @@ function Tile({
   project,
   onClick,
   faded,
+  focused,
   card,
   fade,
 }: {
   project: Project
   onClick: () => void
   faded: boolean
+  focused: boolean
   card: CardStyle
   fade: FadeStyle
 }) {
   const thumb = firstImage(project)
   const scan =
     project.scanEffect && typeof project.scanEffect === 'object' ? project.scanEffect : null
+  const vimeoSrc = vimeoBackgroundSrc(project.vimeoUrl)
+  // When this tile is the focused one and has a Vimeo video, the still image
+  // fades out and the looping background video plays in the same frame.
+  const showVideo = focused && !!vimeoSrc
   const [hovered, setHovered] = useState(false)
   const videoRef = useRef<HTMLVideoElement>(null)
   return (
@@ -159,7 +184,7 @@ function Tile({
               alt={thumb.alt ?? project.title}
               draggable={false}
               className="w-full h-full object-cover select-none relative"
-              animate={{ opacity: faded ? fade.fadedOpacity : 1 }}
+              animate={{ opacity: showVideo ? 0 : faded ? fade.fadedOpacity : 1 }}
               transition={{ duration: fade.duration, ease: 'easeInOut' }}
             />
             {/* Laser-scan overlay: screen-blend drops the black, leaving only the
@@ -178,6 +203,25 @@ function Tile({
                 transition={{ duration: 0.25, ease: 'easeInOut' }}
               />
             )}
+            {/* Focused Vimeo background player: mounts only while focused (so we
+                never load 20+ videos at once), crossfades in over the still
+                image and loops muted with no controls. */}
+            <AnimatePresence>
+              {showVideo && (
+                <motion.iframe
+                  key="vimeo"
+                  src={vimeoSrc!}
+                  title={project.title}
+                  allow="autoplay; fullscreen; picture-in-picture"
+                  className="absolute inset-0 w-full h-full pointer-events-none"
+                  style={{ border: 0 }}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: fade.duration, ease: 'easeInOut' }}
+                />
+              )}
+            </AnimatePresence>
           </motion.div>
         ) : (
           <div
@@ -335,7 +379,14 @@ function PathTile({
         animate={{ opacity: retracting ? 0 : 1 }}
         transition={{ duration: retracting ? fade.fastExit : fade.restore, ease: 'easeOut' }}
       >
-        <Tile project={project} onClick={handleTileClick} faded={tileFaded} card={card} fade={fade} />
+        <Tile
+          project={project}
+          onClick={handleTileClick}
+          faded={tileFaded}
+          focused={selected}
+          card={card}
+          fade={fade}
+        />
       </motion.div>
     </>
   )
