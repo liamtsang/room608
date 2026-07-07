@@ -13,6 +13,7 @@ import {
   type SpringOptions,
 } from 'motion/react'
 import { RichText } from '@payloadcms/richtext-lexical/react'
+import VimeoPlayer from '@vimeo/player'
 import { useDialKit } from 'dialkit'
 import type { Media, Project } from '@/payload-types'
 
@@ -40,20 +41,27 @@ function firstImage(project: Project): Media | null {
   return images[0] ?? null
 }
 
-// Turn a stored Vimeo URL into a background-player embed: muted, looping,
-// controls-free autoplay (Vimeo's background=1 mode). Preserves the privacy
-// hash (?h=) that unlisted videos need. Returns null if no id can be parsed.
-function vimeoBackgroundSrc(raw: string | null | undefined): string | null {
+// Turn a stored Vimeo URL into a clean, chromeless embed: looping autoplay
+// with no player UI. We deliberately avoid Vimeo's background=1 mode because it
+// force-mutes with no runtime control — instead we start muted (so autoplay is
+// always allowed and the video buffers on hover) and unmute at runtime via the
+// Player SDK once the tile is focused by a click. Preserves the privacy hash
+// (?h=) that unlisted videos need. Returns null if no id can be parsed.
+function vimeoEmbedSrc(raw: string | null | undefined): string | null {
   if (!raw) return null
   const id = raw.match(/vimeo\.com\/(?:video\/)?(\d+)/)?.[1]
   if (!id) return null
   const hash = raw.match(/[?&](?:amp;)?h=([0-9a-f]+)/i)?.[1]
   const params = new URLSearchParams({
-    background: '1',
     autoplay: '1',
     muted: '1',
     loop: '1',
     autopause: '0',
+    controls: '0',
+    title: '0',
+    byline: '0',
+    portrait: '0',
+    playsinline: '1',
   })
   if (hash) params.set('h', hash)
   return `https://player.vimeo.com/video/${id}?${params}`
@@ -111,6 +119,8 @@ function Tile({
   onClick,
   faded,
   focused,
+  active,
+  preload,
   card,
   fade,
 }: {
@@ -118,24 +128,109 @@ function Tile({
   onClick: () => void
   faded: boolean
   focused: boolean
+  // Whether this tile copy is the on-screen one for its project. Each project
+  // is rendered once per row (3 copies) and only one is ever on screen, so we
+  // gate the video mount on this to avoid buffering — and unmuting — the two
+  // off-screen duplicates of the focused project.
+  active: boolean
+  // Preload the video (mount buffering + muted, invisible) even when not
+  // hovered or focused — used for the focused item's neighbours so arrow/scroll
+  // navigation plays them instantly.
+  preload: boolean
   card: CardStyle
   fade: FadeStyle
 }) {
   const thumb = firstImage(project)
   const scan =
     project.scanEffect && typeof project.scanEffect === 'object' ? project.scanEffect : null
-  const vimeoSrc = vimeoBackgroundSrc(project.vimeoUrl)
-  // When this tile is the focused one and has a Vimeo video, the still image
-  // fades out and the looping background video plays in the same frame.
-  const showVideo = focused && !!vimeoSrc
+  const vimeoSrc = vimeoEmbedSrc(project.vimeoUrl)
   const [hovered, setHovered] = useState(false)
+  // Mount the iframe on hover (or when it's a focused item's neighbour) so the
+  // video buffers silently and is ready to play the instant the tile is
+  // focused; keep it mounted while focused. Only the on-screen copy mounts, so
+  // we never load the two off-screen duplicates or 20+ tiles at once.
+  const mountVideo = (hovered || focused || preload) && active && !!vimeoSrc
+  // When this tile is the focused one, the still image fades out and the video
+  // becomes visible (and unmuted). During a hover-only preload the video stays
+  // invisible behind the still.
+  const showVideo = focused && !!vimeoSrc
+  const [audioMuted, setAudioMuted] = useState(false)
   const videoRef = useRef<HTMLVideoElement>(null)
   const frameRef = useRef<HTMLDivElement>(null)
+  const iframeRef = useRef<HTMLIFrameElement>(null)
+  const playerRef = useRef<VimeoPlayer | null>(null)
+
+  // Build the Vimeo Player once the iframe mounts; tear it down on unmount.
+  useEffect(() => {
+    if (!mountVideo || !iframeRef.current) return
+    const player = new VimeoPlayer(iframeRef.current)
+    playerRef.current = player
+    return () => {
+      playerRef.current = null
+      player.destroy().catch(() => {})
+    }
+  }, [mountVideo])
+
+  // Unmute when focused (the focus click is a user gesture, so the browser
+  // allows unmuting the already-playing muted video); re-mute during a
+  // hover-only preload so it keeps buffering silently.
+  useEffect(() => {
+    const player = playerRef.current
+    if (!player) return
+    if (focused) {
+      setAudioMuted(false)
+      player.setMuted(false).catch(() => {})
+      player.setVolume(1).catch(() => {})
+      player.play().catch(() => {})
+    } else {
+      player.setMuted(true).catch(() => {})
+    }
+  }, [focused, mountVideo])
+
+  const toggleFullscreen = () => {
+    if (document.fullscreenElement) {
+      document.exitFullscreen?.().catch(() => {})
+    } else {
+      frameRef.current?.requestFullscreen?.().catch(() => {})
+    }
+  }
 
   const goFullscreen = (e: SyntheticEvent) => {
     e.stopPropagation()
-    frameRef.current?.requestFullscreen?.().catch(() => {})
+    toggleFullscreen()
   }
+
+  const toggleMuteCore = () => {
+    const player = playerRef.current
+    if (!player) return
+    const next = !audioMuted
+    setAudioMuted(next)
+    player.setMuted(next).catch(() => {})
+    if (!next) player.setVolume(1).catch(() => {})
+  }
+
+  const toggleMute = (e: SyntheticEvent) => {
+    e.stopPropagation()
+    toggleMuteCore()
+  }
+
+  // Keyboard shortcuts while this tile is the focused, on-screen one:
+  // "f" toggles fullscreen, "m" toggles mute.
+  useEffect(() => {
+    if (!focused || !active) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'f' || e.key === 'F') {
+        e.preventDefault()
+        toggleFullscreen()
+      } else if (e.key === 'm' || e.key === 'M') {
+        e.preventDefault()
+        toggleMuteCore()
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [focused, active, audioMuted])
   return (
     <motion.button
       type="button"
@@ -210,22 +305,23 @@ function Tile({
                 transition={{ duration: 0.25, ease: 'easeInOut' }}
               />
             )}
-            {/* Focused Vimeo background player: mounts only while focused (so we
-                never load 20+ videos at once), crossfades in over the still
-                image and loops muted with no controls. The iframe is oversized
-                a few px and centered so Vimeo's hairline pillarbox is clipped
-                by the frame — no gap on the sides. */}
+            {/* Vimeo player: mounts on hover so the video buffers silently
+                (preload), then crossfades in and unmutes over the still image
+                once the tile is focused. The iframe is oversized a few px and
+                centered so Vimeo's hairline pillarbox is clipped by the frame —
+                no gap on the sides. */}
             <AnimatePresence>
-              {showVideo && (
+              {mountVideo && (
                 <motion.div
                   key="vimeo"
                   className="absolute inset-0 overflow-hidden"
                   initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
+                  animate={{ opacity: showVideo ? 1 : 0 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: fade.duration, ease: 'easeInOut' }}
                 >
                   <iframe
+                    ref={iframeRef}
                     src={vimeoSrc!}
                     title={project.title}
                     allow="autoplay; fullscreen; picture-in-picture"
@@ -237,30 +333,63 @@ function Tile({
                       transform: 'translate(-50%, -50%)',
                     }}
                   />
-                  <div
-                    role="button"
-                    tabIndex={0}
-                    aria-label="Fullscreen"
-                    onClick={goFullscreen}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') goFullscreen(e)
-                    }}
-                    className="absolute bottom-2 right-2 grid place-items-center w-8 h-8 rounded bg-black/45 text-white/90 hover:bg-black/65 pointer-events-auto cursor-pointer transition-colors"
-                  >
-                    <svg
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      aria-hidden="true"
-                    >
-                      <path d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M8 21H5a2 2 0 0 1-2-2v-3M16 21h3a2 2 0 0 0 2-2v-3" />
-                    </svg>
-                  </div>
+                  {showVideo && (
+                    <>
+                      <div
+                        role="button"
+                        tabIndex={0}
+                        aria-label={audioMuted ? 'Unmute' : 'Mute'}
+                        onClick={toggleMute}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') toggleMute(e)
+                        }}
+                        className="absolute bottom-2 right-12 grid place-items-center w-8 h-8 rounded bg-black/45 text-white/90 hover:bg-black/65 pointer-events-auto cursor-pointer transition-colors"
+                      >
+                        <svg
+                          width="16"
+                          height="16"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          aria-hidden="true"
+                        >
+                          <path d="M11 5 6 9H2v6h4l5 4V5z" />
+                          {audioMuted ? (
+                            <path d="m23 9-6 6M17 9l6 6" />
+                          ) : (
+                            <path d="M15.54 8.46a5 5 0 0 1 0 7.07M19.07 4.93a10 10 0 0 1 0 14.14" />
+                          )}
+                        </svg>
+                      </div>
+                      <div
+                        role="button"
+                        tabIndex={0}
+                        aria-label="Fullscreen"
+                        onClick={goFullscreen}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') goFullscreen(e)
+                        }}
+                        className="absolute bottom-2 right-2 grid place-items-center w-8 h-8 rounded bg-black/45 text-white/90 hover:bg-black/65 pointer-events-auto cursor-pointer transition-colors"
+                      >
+                        <svg
+                          width="16"
+                          height="16"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          aria-hidden="true"
+                        >
+                          <path d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M8 21H5a2 2 0 0 1-2-2v-3M16 21h3a2 2 0 0 0 2-2v-3" />
+                        </svg>
+                      </div>
+                    </>
+                  )}
                 </motion.div>
               )}
             </AnimatePresence>
@@ -293,6 +422,7 @@ function PathTile({
   onSelect,
   onClose,
   selected,
+  preload,
   gridFaded,
   navigating,
   fastExitRef,
@@ -318,6 +448,7 @@ function PathTile({
   onSelect: (id: number) => void
   onClose?: () => void
   selected: boolean
+  preload: boolean
   gridFaded: boolean
   navigating: boolean
   fastExitRef: { current: boolean }
@@ -337,6 +468,17 @@ function PathTile({
   // and slide rightward into resting positions as if scrolled forward.
   const pathParams = { index, rowIdx, itemSpacing, totalLen, segLen, offPad }
   const x = useTransform([scroll, introProgress], ([s, p]: number[]) => pathX(s, p, pathParams))
+
+  // Only one of a project's three row copies is on screen at a time (the others
+  // sit at x = OFFSCREEN). Track that so the video only mounts on the visible
+  // copy — otherwise the focused item's two off-screen duplicates would also
+  // buffer and unmute.
+  const [onScreen, setOnScreen] = useState(() => x.get() > OFFSCREEN / 2)
+  useEffect(() => {
+    const update = (v: number) => setOnScreen(v > OFFSCREEN / 2)
+    update(x.get())
+    return x.on('change', update)
+  }, [x])
 
   const tileFaded = gridFaded && !selected
 
@@ -426,6 +568,8 @@ function PathTile({
           onClick={handleTileClick}
           faded={tileFaded}
           focused={selected}
+          active={onScreen}
+          preload={preload}
           card={card}
           fade={fade}
         />
@@ -845,6 +989,15 @@ export function ProjectConveyor({
   const itemSpacing = totalLen / N
   const offPad = (segLen - rowWidth) / 2
 
+  // While an item is focused, preload its immediate neighbours (the projects
+  // one step back/forward, matching navigateRef's wrap logic) so an arrow-key
+  // or wheel step plays the next video instantly instead of buffering on land.
+  const selIdx = selectedId != null ? projects.findIndex((p) => p.id === selectedId) : -1
+  const preloadIds =
+    selIdx >= 0
+      ? new Set([projects[(selIdx - 1 + N) % N].id, projects[(selIdx + 1) % N].id])
+      : null
+
   // Step to the next/previous project in the sequence (wraps at the ends).
   // Shifting scroll by one itemSpacing lands the neighbour project in the
   // exact slot the current one occupies. We swap the selection straight from
@@ -923,6 +1076,7 @@ export function ProjectConveyor({
                 onSelect={onSelect}
                 onClose={onClose}
                 selected={project.id === selectedId}
+                preload={preloadIds?.has(project.id) ?? false}
                 gridFaded={gridFaded}
                 navigating={navigating}
                 fastExitRef={fastExitRef}
