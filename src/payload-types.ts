@@ -165,6 +165,10 @@ export interface Media {
 export interface Project {
   id: number;
   title: string;
+  /**
+   * Auto-generated from the title. Used in the project URL (/projects/<slug>).
+   */
+  slug?: string | null;
   date: string;
   credits?:
     | {
@@ -343,6 +347,7 @@ export interface MediaSelect<T extends boolean = true> {
  */
 export interface ProjectsSelect<T extends boolean = true> {
   title?: T;
+  slug?: T;
   date?: T;
   credits?:
     | T

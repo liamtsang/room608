@@ -86,6 +86,15 @@ export function Workspace({ projects }: { projects: Project[] }) {
                 ← back
               </button>
               <div className="flex-1 overflow-y-auto p-3 pt-16 flex flex-col gap-3">
+                {selected.slug && (
+                  <a
+                    href={`/projects/${selected.slug}`}
+                    className="bg-[#C6B79C] outline-1 outline-[#3D3D3D] drop-shadow-md p-2 text-center font-bold underline"
+                  >
+                    Open page ↗
+                  </a>
+                )}
+
                 {credits.length > 0 && (
                   <div className="bg-[#C6B79C] outline-1 outline-color-[#3D3D3D] drop-shadow-md p-3 grid gap-2 grid-cols-[auto, 1fr]">
                     <div className="grid grid-cols-subgrid col-span-2 w-fit gap-2">

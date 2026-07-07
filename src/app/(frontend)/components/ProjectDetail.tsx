@@ -59,6 +59,15 @@ export function ProjectDetail({ project }: { project: Project }) {
             <div className="outline-1 outline-[#3D3D3D] p-2">Director</div>
             <div className="outline-1 outline-[#3D3D3D] p-2">{director}</div>
           </div>
+
+          {project.slug && (
+            <a
+              href={`/projects/${project.slug}`}
+              className="bg-[#C6B79C] outline-1 outline-[#3D3D3D] drop-shadow-md p-2 text-center font-bold underline"
+            >
+              Open page ↗
+            </a>
+          )}
         </div>
 
         <div className="bg-[#C6B79C] outline-1 outline-[#3D3D3D] drop-shadow-md p-4 max-h-[80vh] overflow-y-auto">
