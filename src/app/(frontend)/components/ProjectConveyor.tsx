@@ -17,6 +17,7 @@ import VimeoPlayer from '@vimeo/player'
 import { useDialKit } from 'dialkit'
 import type { Media, Project } from '@/payload-types'
 import { FlipCell, groupCredits } from './CreditFlip'
+import { useRoom } from './RoomContext'
 
 const ROW_COUNT = 3
 const TILE_GAP = 0
@@ -841,6 +842,10 @@ export function ProjectConveyor({
 }) {
   const containerRef = useRef<HTMLDivElement | null>(null)
 
+  // Has the intro already played this session? Persisted above PageTransition
+  // so returning to `/` from another page doesn't replay the file-in.
+  const { introPlayed, markIntroPlayed } = useRoom()
+
   const dials = useDialKit(
     'Conveyor',
     {
@@ -983,11 +988,23 @@ export function ProjectConveyor({
     if (introStartedRef.current) return
     if (rowWidth <= 0 || tileWidth <= 0) return
     introStartedRef.current = true
+    // Already played this session (e.g. returning from /about): snap the tiles
+    // straight to their resting positions with no animation.
+    if (introPlayed) {
+      introProgress.set(1)
+      return
+    }
+    // Mark on start so navigating away mid-intro and back doesn't restart it.
+    markIntroPlayed()
     const controls = animate(introProgress, 1, {
       duration: dials.motion.introDuration,
       ease: INTRO_EASE,
     })
     return () => controls.stop()
+    // introPlayed/markIntroPlayed are read once here, guarded by introStartedRef.
+    // Excluded from deps so flipping introPlayed doesn't re-run this effect and
+    // stop the in-flight intro via its cleanup.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rowWidth, tileWidth, introProgress, dials.motion.introDuration])
 
   if (projects.length === 0) return null
