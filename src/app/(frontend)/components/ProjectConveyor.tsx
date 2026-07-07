@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState, type SyntheticEvent } from 'react'
+import { Fragment, useEffect, useRef, useState, type SyntheticEvent } from 'react'
 import {
   AnimatePresence,
   animate,
@@ -16,6 +16,7 @@ import { RichText } from '@payloadcms/richtext-lexical/react'
 import VimeoPlayer from '@vimeo/player'
 import { useDialKit } from 'dialkit'
 import type { Media, Project } from '@/payload-types'
+import { FlipCell, groupCredits } from './CreditFlip'
 
 const ROW_COUNT = 3
 const TILE_GAP = 0
@@ -663,11 +664,6 @@ function SlidePanel({
   )
 }
 
-function directorName(project: Project): string {
-  const credits = project.credits ?? []
-  return credits.find((c) => c.role.toLowerCase() === 'director')?.name ?? credits[0]?.name ?? '—'
-}
-
 function DetailPanel({ project, card }: { project: Project; card: CardStyle }) {
   return (
     <div className="text-left h-full pointer-events-auto">
@@ -706,7 +702,7 @@ function CreditCard({ project, dir, card }: { project: Project; dir: 1 | -1; car
         className={`p-2 flex flex-col gap-2 h-full ${dir === 1 ? 'justify-start' : 'justify-end'}`}
       >
         <div
-          className="w-full bg-[#C6B79C] outline outline-black p-2 grid grid-cols-[auto_1fr] grid-rows-2 gap-2 content-center"
+          className="w-full bg-[#C6B79C] outline outline-black p-2 grid grid-cols-[auto_1fr] gap-2 content-center"
           style={{
             borderRadius: card.radius,
             borderBottomStyle: 'solid',
@@ -718,10 +714,31 @@ function CreditCard({ project, dir, card }: { project: Project; dir: 1 | -1; car
           <div className="outline-1 outline-[#3D3D3D] px-3 py-2 text-sm max-w-[30ch]">
             {project.title}
           </div>
-          <div className="outline-1 outline-[#3D3D3D] px-3 py-2 text-sm text-center">Director</div>
-          <div className="outline-1 outline-[#3D3D3D] px-3 py-2 text-sm">
-            {directorName(project)}
-          </div>
+          {groupCredits(project.credits ?? []).map((row, i) => {
+            const cell = 'outline-1 outline-[#3D3D3D] px-3 py-2 text-sm'
+            if (row.kind === 'person') {
+              return (
+                <Fragment key={i}>
+                  <FlipCell values={row.roles} className={`${cell} text-center`} />
+                  <div className={cell}>{row.name}</div>
+                </Fragment>
+              )
+            }
+            if (row.kind === 'role') {
+              return (
+                <Fragment key={i}>
+                  <div className={`${cell} text-center`}>{row.role}</div>
+                  <FlipCell values={row.names} className={cell} />
+                </Fragment>
+              )
+            }
+            return (
+              <Fragment key={i}>
+                <div className={`${cell} text-center`}>{row.role}</div>
+                <div className={cell}>{row.name}</div>
+              </Fragment>
+            )
+          })}
         </div>
       </div>
     </div>
