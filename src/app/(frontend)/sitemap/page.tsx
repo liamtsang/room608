@@ -8,8 +8,8 @@ import { MobileNav } from '../components/MobileNav'
 export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
-  title: 'All projects — Room 608',
-  description: 'Index of every Room 608 film and series.',
+  title: 'Sitemap — Room 608',
+  description: 'Index of every page on room608.nyc.',
 }
 
 export default async function SitemapPage() {
@@ -25,18 +25,44 @@ export default async function SitemapPage() {
   return (
     <div className="dot-grid-bg min-h-screen text-black">
       <MobileNav />
-      <div className="mx-auto max-w-3xl p-4 md:p-8 md:pt-24">
-        <h1 className="mb-4 text-2xl font-bold">All projects</h1>
-        <ul className="bg-[#C6B79C] outline-1 outline-[#3D3D3D] drop-shadow-md divide-y divide-[#3D3D3D]/30">
-          {projects.map((p) => (
-            <li key={p.id}>
-              <Link href={`/projects/${p.slug}`} className="block p-3 underline hover:bg-[#b3a488]">
-                {p.title}
-              </Link>
-            </li>
-          ))}
+      <div className="mx-auto max-w-3xl p-4 font-mono text-xs leading-5 md:p-8 md:pt-24">
+        <p className="mb-2">room608.nyc</p>
+        <ul>
+          <li>
+            <span className="select-none whitespace-pre">├── </span>
+            <Link href="/" className="underline hover:no-underline">
+              Home
+            </Link>
+          </li>
+          <li>
+            <span className="select-none whitespace-pre">├── </span>
+            <Link href="/about" className="underline hover:no-underline">
+              About
+            </Link>
+          </li>
+          <li>
+            <span className="select-none whitespace-pre">└── </span>Projects
+            <ul>
+              {projects.map((p, i) => (
+                <li key={p.id}>
+                  <span className="select-none whitespace-pre">
+                    {'    '}
+                    {i === projects.length - 1 ? '└── ' : '├── '}
+                  </span>
+                  <Link href={`/projects/${p.slug}`} className="underline hover:no-underline">
+                    {p.title}
+                  </Link>
+                </li>
+              ))}
+              {projects.length === 0 && (
+                <li>
+                  <span className="select-none whitespace-pre">{'    '}└── </span>
+                  <span className="opacity-60">(none yet)</span>
+                </li>
+              )}
+            </ul>
+          </li>
         </ul>
-        {projects.length === 0 && <p className="opacity-60">No projects yet.</p>}
       </div>
     </div>
   )
