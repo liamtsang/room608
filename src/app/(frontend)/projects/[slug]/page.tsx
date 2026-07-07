@@ -145,42 +145,37 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd(project)) }}
       />
 
-      <div className="mx-auto flex max-w-4xl flex-col gap-4 p-4 md:p-8">
-        <nav className="text-sm">
-          <Link href="/" className="underline">
+      <div className="mx-auto flex max-w-2xl flex-col gap-6 p-4 text-sm leading-6 md:p-8 md:pt-24">
+        <nav className="text-xs">
+          <Link href="/" className="underline hover:no-underline">
             ← Room 608
           </Link>
         </nav>
 
-        <header className="bg-[#C6B79C] outline-1 outline-[#3D3D3D] drop-shadow-md p-4">
-          <h1 className="text-2xl font-bold md:text-3xl">{project.title}</h1>
-        </header>
+        <h1 className="m-0 text-base font-bold leading-6">{project.title}</h1>
 
         {project.vimeoUrl && (
-          <div className="bg-[#C6B79C] outline-1 outline-[#3D3D3D] drop-shadow-md p-2">
-            <div className="relative aspect-video overflow-hidden border border-white outline-2 outline-[#3D3D3D]">
-              <iframe
-                src={project.vimeoUrl}
-                title={project.title}
-                allow="autoplay; fullscreen; picture-in-picture"
-                allowFullScreen
-                className="absolute inset-0 h-full w-full"
-              />
-            </div>
+          <div className="relative aspect-video overflow-hidden">
+            <iframe
+              src={project.vimeoUrl}
+              title={project.title}
+              allow="autoplay; fullscreen; picture-in-picture"
+              allowFullScreen
+              className="absolute inset-0 h-full w-full"
+            />
           </div>
         )}
 
         {credits.length > 0 && (
-          <section
-            aria-label="Credits"
-            className="bg-[#C6B79C] outline-1 outline-[#3D3D3D] drop-shadow-md p-4"
-          >
-            <h2 className="mb-2 font-bold">Credits</h2>
-            <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1">
+          <section aria-label="Credits">
+            <h2 className="mb-1 text-xs font-normal uppercase tracking-wider opacity-50">
+              Credits
+            </h2>
+            <dl className="grid grid-cols-[auto_1fr] gap-x-6">
               {credits.map((c, i) => (
                 <div key={i} className="col-span-2 grid grid-cols-subgrid">
-                  <dt className="font-semibold">{c.role}</dt>
-                  <dd>{c.name}</dd>
+                  <dt className="opacity-50">{c.role}</dt>
+                  <dd className="m-0">{c.name}</dd>
                 </div>
               ))}
             </dl>
@@ -188,18 +183,17 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
         )}
 
         {project.description && (
-          <section className="bg-[#C6B79C] outline-1 outline-[#3D3D3D] drop-shadow-md p-4">
+          <section>
             <RichText data={project.description} />
           </section>
         )}
 
         {awards.length > 0 && (
-          <section
-            aria-label="Awards"
-            className="bg-[#C6B79C] outline-1 outline-[#3D3D3D] drop-shadow-md p-4"
-          >
-            <h2 className="mb-2 font-bold">Awards</h2>
-            <ul className="list-disc pl-5">
+          <section aria-label="Awards">
+            <h2 className="mb-1 text-xs font-normal uppercase tracking-wider opacity-50">
+              Awards
+            </h2>
+            <ul>
               {awards.map((a, i) => (
                 <li key={i}>
                   {awardLabel(a.type)}
@@ -218,7 +212,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
                   key={img.id}
                   src={img.url}
                   alt={img.alt ?? project.title}
-                  className="w-full border border-white outline-2 outline-[#3D3D3D]"
+                  className="w-full"
                 />
               ) : null,
             )}
