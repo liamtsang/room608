@@ -62,7 +62,9 @@ function isJammedDescription(value: any): boolean {
 }
 
 async function main() {
-  const inputPath = path.join(dirname, 'data', 'scraped-projects.json')
+  const inputPath = process.env.INPUT
+    ? path.resolve(process.env.INPUT)
+    : path.join(dirname, 'data', 'scraped-projects.json')
   const records: ScrapedProject[] = JSON.parse(fs.readFileSync(inputPath, 'utf8'))
 
   const payload = await getPayload({ config: await config })
