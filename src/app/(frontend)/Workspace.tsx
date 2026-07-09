@@ -93,7 +93,7 @@ export function Workspace({ projects }: { projects: Project[] }) {
               </button>
               <div className="flex-1 overflow-y-auto p-3 pt-16 flex flex-col gap-3">
                 {selected.vimeoUrl && (
-                  <div className="relative aspect-video overflow-hidden border border-white outline-2 outline-[#3D3D3D]">
+                  <div className="relative aspect-video shrink-0 overflow-hidden border border-white outline-2 outline-[#3D3D3D]">
                     <iframe
                       src={selected.vimeoUrl}
                       title={selected.title}
