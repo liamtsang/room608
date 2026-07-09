@@ -28,14 +28,14 @@ export default async function SitemapPage() {
       <div className="mx-auto max-w-3xl p-4 font-mono text-xs leading-5 md:p-8 md:pt-24">
         <p className="mb-2">room608.nyc</p>
         <ul>
-          <li>
-            <span className="select-none whitespace-pre">├── </span>
+          <li className="flex">
+            <span className="select-none whitespace-pre shrink-0">├── </span>
             <Link href="/" className="underline hover:no-underline">
               Home
             </Link>
           </li>
-          <li>
-            <span className="select-none whitespace-pre">├── </span>
+          <li className="flex">
+            <span className="select-none whitespace-pre shrink-0">├── </span>
             <Link href="/about" className="underline hover:no-underline">
               About
             </Link>
@@ -44,8 +44,8 @@ export default async function SitemapPage() {
             <span className="select-none whitespace-pre">└── </span>Projects
             <ul>
               {projects.map((p, i) => (
-                <li key={p.id}>
-                  <span className="select-none whitespace-pre">
+                <li key={p.id} className="flex">
+                  <span className="select-none whitespace-pre shrink-0">
                     {'    '}
                     {i === projects.length - 1 ? '└── ' : '├── '}
                   </span>
@@ -55,8 +55,8 @@ export default async function SitemapPage() {
                 </li>
               ))}
               {projects.length === 0 && (
-                <li>
-                  <span className="select-none whitespace-pre">{'    '}└── </span>
+                <li className="flex">
+                  <span className="select-none whitespace-pre shrink-0">{'    '}└── </span>
                   <span className="opacity-60">(none yet)</span>
                 </li>
               )}
