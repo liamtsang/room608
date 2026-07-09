@@ -67,15 +67,21 @@ export function Workspace({ projects }: { projects: Project[] }) {
     return (
       <div className="relative h-screen overflow-hidden">
         <MobileHamburger />
-        <AnimatePresence mode="wait">
-          {selected ? (
+        {/* Grid stays mounted while a detail is open so the intro animation and
+            scroll position survive opening a project and coming back. The detail
+            panel slides over it instead of swapping it out. */}
+        <div className="absolute inset-0">
+          {!transitioning && <MobileGrid projects={projects} onSelect={handleSelectProject} />}
+        </div>
+        <AnimatePresence>
+          {selected && (
             <motion.div
               key={`detail-${selected.id}`}
-              initial={{ x: '100%', opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              exit={{ x: '100%', opacity: 0 }}
-              transition={{ type: 'spring', stiffness: 400, damping: 35 }}
-              className="absolute inset-0 flex flex-col"
+              initial={{ x: '100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '100%' }}
+              transition={{ type: 'spring', stiffness: 260, damping: 30 }}
+              className="dot-grid-bg absolute inset-0 z-20 flex flex-col"
             >
               <button
                 type="button"
@@ -86,6 +92,18 @@ export function Workspace({ projects }: { projects: Project[] }) {
                 ← back
               </button>
               <div className="flex-1 overflow-y-auto p-3 pt-16 flex flex-col gap-3">
+                {selected.vimeoUrl && (
+                  <div className="relative aspect-video overflow-hidden border border-white outline-2 outline-[#3D3D3D]">
+                    <iframe
+                      src={selected.vimeoUrl}
+                      title={selected.title}
+                      allow="autoplay; fullscreen; picture-in-picture"
+                      allowFullScreen
+                      className="absolute inset-0 h-full w-full"
+                    />
+                  </div>
+                )}
+
                 {credits.length > 0 && (
                   <div className="bg-[#C6B79C] outline-1 outline-color-[#3D3D3D] drop-shadow-md p-3 grid gap-2 grid-cols-[auto, 1fr]">
                     <div className="grid grid-cols-subgrid col-span-2 w-fit gap-2">
@@ -139,19 +157,6 @@ export function Workspace({ projects }: { projects: Project[] }) {
                   </div>
                 )}
               </div>
-            </motion.div>
-          ) : (
-            <motion.div
-              key="grid"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="absolute inset-0"
-            >
-              {!transitioning && (
-                <MobileGrid projects={projects} onSelect={handleSelectProject} />
-              )}
             </motion.div>
           )}
         </AnimatePresence>

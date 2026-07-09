@@ -1,21 +1,28 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   animate,
   motion,
   useMotionValue,
   useSpring,
   useTransform,
+  type AnimationPlaybackControls,
   type MotionValue,
 } from 'motion/react'
 import type { Media, Project } from '@/payload-types'
+import { useRoom } from './RoomContext'
 
 const COLUMN_COUNT = 2
 const TILE_GAP = 12
 const TOUCH_STEP = 1
 const WHEEL_STEP = 1.5
-const SPRING = { stiffness: 158, damping: 28, mass: 0.4 }
+// Near-critically damped so the loop tracks the finger closely while dragging
+// (heavily overdamped springs crawl to the target and read as lag) and still
+// smooths the momentum glide after release.
+const SPRING = { stiffness: 420, damping: 30, mass: 0.4 }
+// Seconds of release velocity projected ahead on touchend — the fling distance.
+const FLING_PROJECTION = 0.35
 // Multiplier on tileHeight for off-screen pad per column end. >= 1 keeps the
 // column-to-column teleport hidden behind the column's overflow clip.
 const PAD_FACTOR = 1
@@ -124,10 +131,24 @@ interface MobileGridProps {
 export function MobileGrid({ projects, onSelect }: MobileGridProps) {
   const containerRef = useRef<HTMLDivElement | null>(null)
 
+  // Has the intro already played this session? Persisted above PageTransition
+  // so returning to `/` from another page doesn't replay the file-in.
+  const { introPlayed, markIntroPlayed } = useRoom()
+
   const scrollTarget = useMotionValue(0)
   const scroll = useSpring(scrollTarget, SPRING)
   const introProgress = useMotionValue(0)
   const introStartedRef = useRef(false)
+  const introControlsRef = useRef<AnimationPlaybackControls | null>(null)
+
+  // First user interaction fast-forwards the intro: the loop-around (mod) only
+  // engages at introProgress 1, so scrolling mid-intro would show a gap where
+  // tiles haven't wrapped yet.
+  const skipIntro = useCallback(() => {
+    if (introProgress.get() >= 1) return
+    introControlsRef.current?.stop()
+    animate(introProgress, 1, { duration: 0.35, ease: 'easeOut' })
+  }, [introProgress])
 
   const [colEl, setColEl] = useState<HTMLDivElement | null>(null)
   const [tileEl, setTileEl] = useState<HTMLDivElement | null>(null)
@@ -161,6 +182,7 @@ export function MobileGrid({ projects, onSelect }: MobileGridProps) {
     const onTouchStart = (e: TouchEvent) => {
       if (e.touches.length === 0) return
       lastTouchY = e.touches[0].clientY
+      skipIntro()
     }
 
     const onTouchMove = (e: TouchEvent) => {
@@ -175,10 +197,18 @@ export function MobileGrid({ projects, onSelect }: MobileGridProps) {
 
     const onTouchEnd = () => {
       lastTouchY = null
+      // Fling: project the release velocity ahead and let the scroll spring
+      // supply the deceleration glide. getVelocity() reads ~0 when the finger
+      // paused before lifting, so a stationary release doesn't drift.
+      const velocity = scrollTarget.getVelocity()
+      if (Math.abs(velocity) > 50) {
+        scrollTarget.set(scrollTarget.get() + velocity * FLING_PROJECTION)
+      }
     }
 
     const onWheel = (e: WheelEvent) => {
       e.preventDefault()
+      skipIntro()
       scrollTarget.set(scrollTarget.get() + (e.deltaY + e.deltaX) * WHEEL_STEP)
     }
 
@@ -195,17 +225,30 @@ export function MobileGrid({ projects, onSelect }: MobileGridProps) {
       el.removeEventListener('touchcancel', onTouchEnd)
       el.removeEventListener('wheel', onWheel)
     }
-  }, [scrollTarget])
+  }, [scrollTarget, skipIntro])
 
   useEffect(() => {
     if (introStartedRef.current) return
     if (columnHeight <= 0 || tileHeight <= 0) return
     introStartedRef.current = true
+    // Already played this session (e.g. returning from /about): snap the tiles
+    // straight to their resting positions with no animation.
+    if (introPlayed) {
+      introProgress.set(1)
+      return
+    }
+    // Mark on start so navigating away mid-intro and back doesn't restart it.
+    markIntroPlayed()
     const controls = animate(introProgress, 1, {
       duration: INTRO_DURATION,
       ease: INTRO_EASE,
     })
+    introControlsRef.current = controls
     return () => controls.stop()
+    // introPlayed/markIntroPlayed are read once here, guarded by introStartedRef.
+    // Excluded from deps so flipping introPlayed doesn't re-run this effect and
+    // stop the in-flight intro via its cleanup.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [columnHeight, tileHeight, introProgress])
 
   if (projects.length === 0) return null

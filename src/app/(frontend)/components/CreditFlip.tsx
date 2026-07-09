@@ -68,7 +68,8 @@ function dedupe(values: string[]): string[] {
 const FLIP_MS = 2000
 
 // A single boxed cell. One value → static. Multiple values → auto-advances on
-// a timer, flipping the whole tile on the X axis (letters aren't animated).
+// a timer, flipping the whole boxed cell on the X axis — the block rotates,
+// not just the text inside a stationary box.
 // Honors reduced-motion by rendering the values as a static comma list.
 export function FlipCell({ values, className }: { values: string[]; className?: string }) {
   const reduced = useReducedMotion()
@@ -85,15 +86,16 @@ export function FlipCell({ values, className }: { values: string[]; className?: 
 
   const value = values[i % values.length]
   return (
-    <div className={className} style={{ perspective: 400, overflow: 'hidden' }}>
+    <div style={{ perspective: 400 }}>
       <AnimatePresence mode="wait" initial={false}>
         <motion.div
           key={value}
+          className={className}
           initial={{ rotateX: 90, opacity: 0 }}
           animate={{ rotateX: 0, opacity: 1 }}
           exit={{ rotateX: -90, opacity: 0 }}
           transition={{ type: 'spring', stiffness: 500, damping: 34 }}
-          style={{ transformOrigin: 'center', backfaceVisibility: 'hidden' }}
+          style={{ transformOrigin: 'center', backfaceVisibility: 'hidden', height: '100%' }}
         >
           {value}
         </motion.div>
