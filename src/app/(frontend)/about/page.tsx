@@ -1,5 +1,5 @@
 import Image from 'next/image'
-import { MobileNav } from '../components/MobileNav'
+import { MobileHamburger } from '../components/MobileHamburger'
 
 const logos: { src: string; alt: string }[] = [
   { src: '/logos/76th-emmys-gold-logo 1.png', alt: 'Emmy Awards' },
@@ -44,6 +44,7 @@ const awards: string[] = [
 export default async function About() {
   return (
     <div className="dot-grid-bg min-h-screen">
+      <MobileHamburger />
       <div className="p-2 md:p-8 md:pt-24 max-w-5xl mx-auto">
         <div className="flex justify-center gap-4 flex-wrap mb-8">
           {portraits.map(({ src, origin }) => (
@@ -94,8 +95,6 @@ export default async function About() {
             />
           ))}
         </div>
-
-        <MobileNav />
       </div>
     </div>
   )

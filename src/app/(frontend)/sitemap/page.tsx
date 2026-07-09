@@ -2,7 +2,7 @@ import Link from 'next/link'
 import type { Metadata } from 'next'
 import { getPayload } from 'payload'
 import config from '@/payload.config'
-import { MobileNav } from '../components/MobileNav'
+import { MobileHamburger } from '../components/MobileHamburger'
 
 // Request-time render so the list stays in sync with the projects collection.
 export const dynamic = 'force-dynamic'
@@ -24,7 +24,7 @@ export default async function SitemapPage() {
 
   return (
     <div className="dot-grid-bg min-h-screen text-black">
-      <MobileNav />
+      <MobileHamburger />
       <div className="mx-auto max-w-3xl p-4 font-mono text-xs leading-5 md:p-8 md:pt-24">
         <p className="mb-2">room608.nyc</p>
         <ul>
