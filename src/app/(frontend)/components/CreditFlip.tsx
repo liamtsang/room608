@@ -91,9 +91,9 @@ export function FlipCell({ values, className }: { values: string[]; className?: 
         <motion.div
           key={value}
           className={className}
-          initial={{ rotateX: 90, opacity: 0 }}
+          initial={{ rotateX: 45, opacity: 0 }}
           animate={{ rotateX: 0, opacity: 1 }}
-          exit={{ rotateX: -90, opacity: 0 }}
+          exit={{ rotateX: -45, opacity: 0 }}
           transition={{ type: 'spring', stiffness: 500, damping: 34 }}
           style={{ transformOrigin: 'center', backfaceVisibility: 'hidden', height: '100%' }}
         >
