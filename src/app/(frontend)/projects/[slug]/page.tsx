@@ -147,8 +147,8 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
 
       <div className="mx-auto flex max-w-2xl flex-col gap-6 p-4 text-sm leading-6 md:p-8 md:pt-24">
         <nav className="text-xs">
-          <Link href="/" className="underline hover:no-underline">
-            ← Room 608
+          <Link href="/sitemap" className="underline hover:no-underline">
+            ← sitemap
           </Link>
         </nav>
 
