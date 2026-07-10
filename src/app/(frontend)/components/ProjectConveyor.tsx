@@ -484,15 +484,24 @@ function PathTile({
 
   const tileFaded = gridFaded && !selected
 
-  // While the panel is mounted (including its exit slide-back), keep the
-  // tile above it so the panel slides back behind the image, not over it.
+  // While either panel is mounted (including its exit slide-back), keep the
+  // tile above it so the panels slide back behind the image, not over it.
+  // The detail and credit panels retract on different springs and finish at
+  // different times, so each clears its own flag — dropping the tile when the
+  // first one lands would pop the still-retracting other panel over the frame.
   // But when *another* tile is now selected (a nav step), this tile is
   // retracting + fading — drop it below so its semi-transparent image doesn't
   // sit over the incoming panel.
-  const [panelMounted, setPanelMounted] = useState(false)
+  const [detailMounted, setDetailMounted] = useState(false)
+  const [creditMounted, setCreditMounted] = useState(false)
   useEffect(() => {
-    if (selected) setPanelMounted(true)
-  }, [selected])
+    if (selected) {
+      setDetailMounted(true)
+      // Mirrors the credit panel's mount condition below.
+      if (verticalPitch > 0) setCreditMounted(true)
+    }
+  }, [selected, verticalPitch])
+  const panelMounted = detailMounted || creditMounted
   const panelAbove = panelMounted && (selected || !gridFaded)
   // The item being navigated away from: snap it out fast so it doesn't linger
   // and cross over the incoming item.
@@ -532,7 +541,7 @@ function PathTile({
             dirOverride={dirOverride}
             fastExitRef={fastExitRef}
             fastExitDuration={fade.fastExit}
-            onExitComplete={() => setPanelMounted(false)}
+            onExitComplete={() => setDetailMounted(false)}
           />
         )}
       </AnimatePresence>
@@ -547,6 +556,7 @@ function PathTile({
             spring={creditSpring}
             fastExitRef={fastExitRef}
             fastExitDuration={fade.fastExit}
+            onExitComplete={() => setCreditMounted(false)}
             // top rows pop down, the bottom row pops up
             dir={rowIdx === ROW_COUNT - 1 ? -1 : 1}
           />
