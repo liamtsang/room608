@@ -282,13 +282,16 @@ function Tile({
               }}
             />
             {/* Foreground image fades out to reveal the bg layer. Blend mode
-                never changes, so the transition is smooth. */}
+                never changes, so the transition is smooth. It stays fully
+                opaque under the video (which covers it when playing) so the
+                frame never turns see-through while the video crossfades out on
+                close — otherwise the retracting panels show through the face. */}
             <motion.img
               src={thumb.url}
               alt={thumb.alt ?? project.title}
               draggable={false}
               className="w-full h-full object-cover select-none relative"
-              animate={{ opacity: showVideo ? 0 : faded ? fade.fadedOpacity : 1 }}
+              animate={{ opacity: faded ? fade.fadedOpacity : 1 }}
               transition={{ duration: fade.duration, ease: 'easeInOut' }}
             />
             {/* Laser-scan overlay: screen-blend drops the black, leaving only the
