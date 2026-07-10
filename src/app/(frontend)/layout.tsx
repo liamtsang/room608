@@ -59,7 +59,7 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
         <link rel="dns-prefetch" href="https://vod-adaptive-ak.vimeocdn.com" />
         <RoomProvider>
           <div className="block h-[100dvh]">
-            <main className="relative flex-1 h-[100dvh] overflow-hidden">
+            <main className="relative flex-1 h-[100dvh] overflow-hidden dot-grid-bg">
               <PageTransition>{children}</PageTransition>
             </main>
             <Nav />
