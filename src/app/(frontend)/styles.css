@@ -18,6 +18,9 @@
 
 * {
   box-sizing: border-box;
+
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* Custom reticle cursor across the frontend. Hotspot = the center dot (17,18).
@@ -77,8 +80,7 @@ body {
   font-family:
     iA Writer Mono,
     system-ui;
-  font-size: 18px;
-  line-height: 1.8rem;
+  line-height: 1.8;
   height: fit-content;
   min-height: 100%;
 
@@ -88,29 +90,6 @@ body {
   @media (max-width: 1024px) {
     font-size: 15px;
     line-height: 24px;
-  }
-}
-
-h1 {
-  margin: 40px 0;
-  font-size: 64px;
-  line-height: 70px;
-  font-weight: bold;
-
-  @media (max-width: 1024px) {
-    margin: 24px 0;
-    font-size: 42px;
-    line-height: 42px;
-  }
-
-  @media (max-width: 768px) {
-    font-size: 38px;
-    line-height: 38px;
-  }
-
-  @media (max-width: 400px) {
-    font-size: 32px;
-    line-height: 32px;
   }
 }
 

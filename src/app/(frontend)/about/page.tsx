@@ -1,5 +1,6 @@
 import Image from 'next/image'
 import { MobileHamburger } from '../components/MobileHamburger'
+import { ContactForm } from '../components/ContactForm'
 
 const logos: { src: string; alt: string }[] = [
   { src: '/logos/76th-emmys-gold-logo 1.png', alt: 'Emmy Awards' },
@@ -46,7 +47,7 @@ export default async function About() {
     <div className="dot-grid-bg min-h-screen">
       <MobileHamburger />
       <div className="p-2 md:p-8 md:pt-24 max-w-5xl mx-auto">
-        <div className="flex justify-center gap-4 flex-wrap mb-8">
+        <div className="flex justify-between gap-4 flex-wrap mb-8">
           {portraits.map(({ src, origin }) => (
             <Image
               key={src}
@@ -60,41 +61,42 @@ export default async function About() {
           ))}
         </div>
 
-        <div className="bg-[#C6B79C] outline-1 outline-color-[#515151] drop-shadow-md">
-          <p>
+        <div className="">
+          <p className="bg-none">
             Mark Mannucci and Jon Halperin have been collaborating since 2007. In the past 14 years,
             through their company, Room 608, Jon and Mark have made films and series for Amazon,
-            YouTube, Netflix, Vox, PBS, PBS Digital, ITVS, The Atlantic, TED, The World, History, and
-            National Geographic. Their work has been screened at festivals around the world and In
-            2017, they won a National News and Documentary Emmy for Best Science film for A Year In
-            Space. Collectively, in their careers, they have won two Peabody Awards, eight Emmys, and
-            have been nominated another 18 times. Their most recent series, Breaking the Deadlock,
-            has been nominated for two Emmys. Teams at Room 608 can produce anything from vertical
-            animated shorts to multimillion dollar international co-productions.
+            YouTube, Netflix, Vox, PBS, PBS Digital, ITVS, The Atlantic, TED, The World, History,
+            and National Geographic. Their work has been screened at festivals around the world and
+            In 2017, they won a National News and Documentary Emmy for Best Science film for A Year
+            In Space. Collectively, in their careers, they have won two Peabody Awards, eight Emmys,
+            and have been nominated another 18 times. Their most recent series, Breaking the
+            Deadlock, has been nominated for two Emmys. Teams at Room 608 can produce anything from
+            vertical animated shorts to multimillion dollar international co-productions.
           </p>
         </div>
 
-        <div className="mt-8 bg-[#C6B79C] outline-1 outline-color-[#515151] drop-shadow-md p-4">
+        <div className="mt-8 grid grid-cols-[auto_auto]">
           <h2 className="font-bold mb-3">Awards</h2>
-          <ul className="grid gap-1 md:grid-cols-2">
+          <div></div>
+          <ul className="grid">
             {awards.map((award) => (
               <li key={award}>{award}</li>
             ))}
           </ul>
+          <div className="flex flex-wrap items-center justify-end content-between gap-8">
+            {logos.map(({ src, alt }) => (
+              <Image
+                key={src}
+                src={src}
+                alt={alt}
+                width={120}
+                height={60}
+                className="h-8 md:h-12 mb-2 md:mb-0 w-auto object-contain select-none invert mix-blend-darken"
+              />
+            ))}
+          </div>{' '}
         </div>
-
-        <div className="mt-12 flex flex-wrap items-center justify-center gap-8">
-          {logos.map(({ src, alt }) => (
-            <Image
-              key={src}
-              src={src}
-              alt={alt}
-              width={120}
-              height={60}
-              className="h-8 md:h-12 mb-2 md:mb-0 w-auto object-contain select-none invert mix-blend-darken"
-            />
-          ))}
-        </div>
+        <ContactForm />
       </div>
     </div>
   )
