@@ -1,0 +1,949 @@
+[
+  {
+    "slug": "a-trip-to-infinity",
+    "title": "A Trip to Infinity",
+    "scrapedTitle": "A TRIP TO INFINITY",
+    "matchStatus": "matched",
+    "skip": false,
+    "overwriteDescription": false,
+    "scrapedDate": "2023-07-03",
+    "vimeoUrl": null,
+    "synopsisParagraphs": [
+      "Does infinity exist? Can we experience the Infinite? In an animated film (created by artists from 10 countries) the world's most cutting-edge scientists and mathematicians go in search of the infinite and its mind-bending implications for the universe.",
+      "A Trip to Infinity made the Netflix Top 10 list in 32 countries and a 4 1/2 minute scene went viral on TikTok with 18 million views in a week."
+    ],
+    "credits": [
+      {
+        "role": "Director",
+        "name": "Jonathan Halperin"
+      },
+      {
+        "role": "Director",
+        "name": "Drew Takahashi"
+      },
+      {
+        "role": "Executive Producer",
+        "name": "Mark Mannucci"
+      },
+      {
+        "role": "Writer",
+        "name": "Jonathan Halperin"
+      },
+      {
+        "role": "Writer",
+        "name": "Alex Ricciardi"
+      },
+      {
+        "role": "Editor",
+        "name": "Alex Ricciardi"
+      },
+      {
+        "role": "Music",
+        "name": "Efrim Manuel Menuck"
+      }
+    ],
+    "attributionLines": [
+      "Room 608 & MakeMake Entertainment"
+    ],
+    "rawText": "A TRIP TO INFINITY\nDoes infinity exist? Can we experience the Infinite? In an animated film (created by artists from 10 countries) the world's most cutting-edge scientists and mathematicians go in search of the infinite and its mind-bending implications for the universe.\nA Trip to Infinity made the Netflix Top 10 list in 32 countries and a 4 1/2 minute scene went viral on TikTok with 18 million views in a week.\nDirectors\nJONATHAN HALPERIN\nDREW TAKAHASHI\nExecutive Producer MARK MANNUCCI\nWriters\nJONATHAN HALPERIN\nALEX RICCIARDI\nEditor ALEX RICCIARDI\nMusic EFRIM MANUEL MENUCK\nRoom 608 & MakeMake Entertainment",
+    "warnings": [
+      "no Vimeo embed found"
+    ]
+  },
+  {
+    "slug": "a-year-in-space",
+    "title": "A Year in Space",
+    "scrapedTitle": "A YEAR IN SPACE",
+    "matchStatus": "matched",
+    "skip": false,
+    "overwriteDescription": false,
+    "scrapedDate": "2016-04-22",
+    "vimeoUrl": "https://player.vimeo.com/video/159863182",
+    "synopsisParagraphs": [
+      "Follow astronaut Scott Kelly’s record-breaking 12-month mission on the International Space Station, from launch to landing, as NASA charts the effects of long-duration spaceflight. A Year In Space is the story of life moving at the 17,500 miles per hour, of the human urge – the need – to explore no matter the cost or consequences."
+    ],
+    "credits": [
+      {
+        "role": "Director",
+        "name": "Jonathan Halperin"
+      },
+      {
+        "role": "Writer",
+        "name": "Jonathan Halperin"
+      },
+      {
+        "role": "Executive Producer",
+        "name": "Mark Mannucci"
+      },
+      {
+        "role": "Executive Producer",
+        "name": "Jonathan Halperin"
+      }
+    ],
+    "attributionLines": [
+      "Room 608 for Time Inc. & PBS"
+    ],
+    "rawText": "A YEAR IN SPACE\nNormal\n0\nfalse\nfalse\nfalse\nEN-US\nJA\nX-NONE\nFollow astronaut Scott Kelly’s record-breaking 12-month mission on the International Space Station, from launch to landing, as NASA charts the effects of long-duration spaceflight. A Year In Space is the story of life moving at the 17,500 miles per hour, of the human urge – the need – to explore no matter the cost or consequences.\nDirector/Writer JONATHAN HALPERIN\nExecutive Producers\nMARK MANNUCCI & JONATHAN HALPERIN\nWatch the full program online at PBS.org\nRoom 608 for Time Inc. & PBS\nFootage & Photography © Public Broadcasting Service",
+    "warnings": [
+      "compound role Director+Writer -> 1 name(s)"
+    ]
+  },
+  {
+    "slug": "beyond-a-year-in-space",
+    "title": "Beyond A Year in Space",
+    "scrapedTitle": "BEYOND A YEAR IN SPACE",
+    "matchStatus": "matched",
+    "skip": false,
+    "overwriteDescription": false,
+    "scrapedDate": "2018-10-17",
+    "vimeoUrl": "https://player.vimeo.com/video/295674706",
+    "synopsisParagraphs": [
+      "The journey into Deep Space will be one of humanity’s greatest scientific achievements and it will only be accomplished through a series of bold steps. Scott Kelly’s Year in Space was one of those. Now a new generation of astronauts is training to take the next ones. Jessica Meir and Victor Glover are in line to be among the few human beings to venture out of Earth orbit – this time beyond the moon, into deep space and possibly to Mars."
+    ],
+    "credits": [
+      {
+        "role": "Director",
+        "name": "Mark Mannucci"
+      },
+      {
+        "role": "Writer",
+        "name": "Mark Mannucci"
+      },
+      {
+        "role": "Executive Producer",
+        "name": "Jonathan Halperin"
+      },
+      {
+        "role": "Executive Producer",
+        "name": "Mark Mannucci"
+      }
+    ],
+    "attributionLines": [
+      "Room 608 for Time Inc. & PBS"
+    ],
+    "rawText": "BEYOND A YEAR IN SPACE\nThe journey into Deep Space will be one of humanity’s greatest scientific achievements and it will only be accomplished through a series of bold steps. Scott Kelly’s Year in Space was one of those. Now a new generation of astronauts is training to take the next ones. Jessica Meir and Victor Glover are in line to be among the few human beings to venture out of Earth orbit – this time beyond the moon, into deep space and possibly to Mars.\nDirector/Writer MARK MANNUCCI\nExecutive Producers\nJONATHAN HALPERIN & MARK MANNUCCI\nWatch the full program online at PBS.org\nRoom 608 for Time Inc. & PBS\nFootage & Photography © Public Broadcasting Service",
+    "warnings": [
+      "compound role Director+Writer -> 1 name(s)"
+    ]
+  },
+  {
+    "slug": "deadlock",
+    "title": "Breaking the Deadlock",
+    "scrapedTitle": "BREAKING THE DEADLOCK",
+    "matchStatus": "matched",
+    "skip": false,
+    "overwriteDescription": false,
+    "scrapedDate": "2025-08-10",
+    "vimeoUrl": "https://player.vimeo.com/video/1106798759?h=119c8b280c",
+    "synopsisParagraphs": [
+      "A panel of influential figures talks through ethical dilemmas based on a real-life scenario."
+    ],
+    "credits": [
+      {
+        "role": "Director",
+        "name": "Mark Mannucci"
+      },
+      {
+        "role": "Producer",
+        "name": "Jonathan Halperin"
+      },
+      {
+        "role": "Producer",
+        "name": "Mark Mannucci"
+      },
+      {
+        "role": "Executive Producer",
+        "name": "Andrew Lack"
+      },
+      {
+        "role": "Executive Producer",
+        "name": "Nina Weinstein"
+      },
+      {
+        "role": "Executive Producer",
+        "name": "John Bredar"
+      },
+      {
+        "role": "Executive Producer",
+        "name": "Laurie Donnelly"
+      },
+      {
+        "role": "Editor",
+        "name": "Michael Pasquariello"
+      }
+    ],
+    "attributionLines": [
+      "WGBH Educational Foundation, Andrew Lack & Room 608"
+    ],
+    "rawText": "BREAKING THE DEADLOCK\nA panel of influential figures talks through ethical dilemmas based on a real-life scenario.\nDirector MARK MANNUCCI\nProducers JONATHAN HALPERIN & MARK MANNUCCI\nExecutive Producers ANDREW LACK, NINA WEINSTEIN, JOHN BREDAR, LAURIE DONNELLY\nEditor MICHAEL PASQUARIELLO\nWGBH Educational Foundation, Andrew Lack & Room 608",
+    "warnings": []
+  },
+  {
+    "slug": "buried-in-burma",
+    "title": "Buried in Burma",
+    "scrapedTitle": "BURIED IN BURMA",
+    "matchStatus": "matched",
+    "skip": false,
+    "overwriteDescription": false,
+    "scrapedDate": "2015-05-11",
+    "vimeoUrl": "https://player.vimeo.com/video/127499213",
+    "synopsisParagraphs": [
+      "Buried in Burma is the story of a British potato farmer's quixotic quest to dig up a squadron of Spitfire aircraft he believes were buried at the end of WWII. When an improbable partner steps forward to offer help, the journey becomes a farce where shovels and spades unearth delusion and deceit."
+    ],
+    "credits": [
+      {
+        "role": "Director",
+        "name": "Mark Mannucci"
+      },
+      {
+        "role": "Producer",
+        "name": "Anna Bowers"
+      },
+      {
+        "role": "Associate Producer",
+        "name": "Ivan Bess"
+      }
+    ],
+    "attributionLines": [
+      "COMING SOON",
+      "MARK MANNUCCI & JONATHAN HALPERIN",
+      "a Room 608 Production"
+    ],
+    "rawText": "BURIED IN BURMA\nNormal\n0\nfalse\nfalse\nfalse\nEN-US\nJA\nX-NONE\nNormal\n0\nfalse\nfalse\nfalse\nEN-US\nJA\nX-NONE\nBuried in Burma is the story of a British potato farmer's quixotic quest to dig up a squadron of Spitfire aircraft he believes were buried at the end of WWII. When an improbable partner steps forward to offer help, the journey becomes a farce where shovels and spades unearth delusion and deceit.\nCOMING SOON\nDirector MARK MANNUCCI\nProducers ANNA BOWERS\nMARK MANNUCCI & JONATHAN HALPERIN\nAssociate Producer IVAN BESS\na Room 608 Production",
+    "warnings": []
+  },
+  {
+    "slug": "curious",
+    "title": "Curious",
+    "scrapedTitle": "CURIOUS",
+    "matchStatus": "matched",
+    "skip": false,
+    "overwriteDescription": false,
+    "scrapedDate": "2014-08-05",
+    "vimeoUrl": "https://player.vimeo.com/video/68718990",
+    "synopsisParagraphs": [
+      "An immersion into cutting edge science."
+    ],
+    "credits": [
+      {
+        "role": "Producer",
+        "name": "Mark Mannucci"
+      },
+      {
+        "role": "Director",
+        "name": "Mark Mannucci"
+      }
+    ],
+    "attributionLines": [
+      "PBS"
+    ],
+    "rawText": "CURIOUS\nAn immersion into cutting edge science.\nProducer/Director MARK MANNUCCI\nPBS",
+    "warnings": [
+      "compound role Producer+Director -> 1 name(s)"
+    ]
+  },
+  {
+    "slug": "decoding-watson",
+    "title": "Decoding Watson",
+    "scrapedTitle": "DECODING WATSON",
+    "matchStatus": "matched",
+    "skip": false,
+    "overwriteDescription": false,
+    "scrapedDate": "2023-06-29",
+    "vimeoUrl": null,
+    "synopsisParagraphs": [
+      "The epic tale of James Watson, the quirky, irascible co-discoverer of the structure of DNA."
+    ],
+    "credits": [
+      {
+        "role": "Director",
+        "name": "Mark Mannucci"
+      },
+      {
+        "role": "Producer",
+        "name": "Mark Mannucci"
+      },
+      {
+        "role": "Executive Producer",
+        "name": "Jonathan Halperin"
+      },
+      {
+        "role": "Associate Producer",
+        "name": "Hannah Meagher"
+      },
+      {
+        "role": "Editor",
+        "name": "Alex Ricciardi"
+      },
+      {
+        "role": "Animator",
+        "name": "Roberto Biadi"
+      },
+      {
+        "role": "Animator",
+        "name": "Christian Stangl"
+      },
+      {
+        "role": "Animator",
+        "name": "Drew Takahashi"
+      },
+      {
+        "role": "Animator",
+        "name": "Richard Trammell"
+      },
+      {
+        "role": "Music",
+        "name": "Aaron Keane"
+      }
+    ],
+    "attributionLines": [
+      "Room 608 & American Masters"
+    ],
+    "rawText": "DECODING WATSON\nThe epic tale of James Watson, the quirky, irascible co-discoverer of the structure of DNA.\nDirector/Producer MARK MANNUCCI\nExecutive Producer JONATHAN HALPERIN\nAssociate Producer HANNAH MEAGHER\nEditor ALEX RICCIARDI\nAnimation\nROBERTO BIADI\nCHRISTIAN STANGL\nDREW TAKAHASHI\nRICHARD TRAMMELL\nMusic AARON KEANE\nRoom 608 & American Masters",
+    "warnings": [
+      "compound role Director+Producer -> 1 name(s)",
+      "no Vimeo embed found"
+    ]
+  },
+  {
+    "slug": "dr-tony-fauci",
+    "title": "Dr. Tony Fauci",
+    "scrapedTitle": "DR. TONY FAUCI",
+    "matchStatus": "matched",
+    "skip": false,
+    "overwriteDescription": false,
+    "scrapedDate": "2023-06-29",
+    "vimeoUrl": "https://player.vimeo.com/video/841006879?h=555b7c7da7",
+    "synopsisParagraphs": [
+      "Follow Dr. Anthony Fauci as he grapples with the COVID-19 pandemic and his 50-year career as the nation’s leading public health advocate. American Masters: Dr. Tony Fauci reveals a rarely seen side of the physician, husband and father as he confronts political backlash, a new administration and questions of the future."
+    ],
+    "credits": [
+      {
+        "role": "Director",
+        "name": "Mark Mannucci"
+      },
+      {
+        "role": "Co-Producer",
+        "name": "Laura Jespersen"
+      },
+      {
+        "role": "Editor",
+        "name": "Christopher Kronus"
+      },
+      {
+        "role": "Music",
+        "name": "Jim Crew"
+      },
+      {
+        "role": "Music",
+        "name": "Aaron Keane"
+      }
+    ],
+    "attributionLines": [
+      "Room 608, American Masters & Topspin Content"
+    ],
+    "rawText": "DR. TONY FAUCI\nFollow Dr. Anthony Fauci as he grapples with the COVID-19 pandemic and his 50-year career as the nation’s leading public health advocate. American Masters: Dr. Tony Fauci reveals a rarely seen side of the physician, husband and father as he confronts political backlash, a new administration and questions of the future.\nDirector MARK MANNUCCI\nCo-Producer LAURA JESPERSEN\nEditor CHRISTOPHER KRONUS\nMusic\nJIM CREW & AARON KEANE\nRoom 608, American Masters & Topspin Content",
+    "warnings": []
+  },
+  {
+    "slug": "faces-of-death",
+    "title": "Faces of Death",
+    "scrapedTitle": "An Embalmer's Tale",
+    "matchStatus": "matched",
+    "skip": false,
+    "overwriteDescription": false,
+    "scrapedDate": "2016-04-29",
+    "vimeoUrl": "https://player.vimeo.com/video/160950964",
+    "synopsisParagraphs": [
+      "A Tattoo To Remember",
+      "Pausing Death"
+    ],
+    "credits": [
+      {
+        "role": "Producer",
+        "name": "Mark Mannucci"
+      },
+      {
+        "role": "Producer",
+        "name": "Anna Bowers"
+      },
+      {
+        "role": "Writer",
+        "name": "Mark Mannucci"
+      },
+      {
+        "role": "Writer",
+        "name": "Anna Bowers"
+      },
+      {
+        "role": "Director",
+        "name": "Mark Mannucci"
+      },
+      {
+        "role": "Producer",
+        "name": "Jon Halperin"
+      }
+    ],
+    "attributionLines": [
+      "FACES OF DEATH",
+      "Today, our attitudes towards death are changing. And the choices we make for ourselves after we die have become yet another way to express our individuality. A mortician who believes in the healing power of embalming… a young woman who has chosen a tattoo made from ink containing her father’s to ashes... a company who will help you postpone death by freezing you… a family who is digging their father’s grave before he has died... Faces of Death tells the stories of people who've found a way to accept death as a natural part of being alive.",
+      "The entire episode may be seen at NationalGeographic.com",
+      "National Geographic Channel",
+      "© National Geographic Television"
+    ],
+    "rawText": "An Embalmer's Tale\nA Tattoo To Remember\nPausing Death\nFACES OF DEATH\nToday, our attitudes towards death are changing. And the choices we make for ourselves after we die have become yet another way to express our individuality. A mortician who believes in the healing power of embalming… a young woman who has chosen a tattoo made from ink containing her father’s to ashes... a company who will help you postpone death by freezing you… a family who is digging their father’s grave before he has died... Faces of Death tells the stories of people who've found a way to accept death as a natural part of being alive.\nThe entire episode may be seen at NationalGeographic.com\nProduced & Written by\nMARK MANNUCCI & ANNA BOWERS\nDirected by MARK MANNUCCI\nProducer JON HALPERIN\nNational Geographic Channel\n© National Geographic Television",
+    "warnings": [
+      "compound role Producer+Writer -> 2 name(s)",
+      "long attribution line — possible synopsis misplaced (review)",
+      "short synopsis line — possible heading (review)"
+    ]
+  },
+  {
+    "slug": "gorilla-murders",
+    "title": "Gorilla Murders",
+    "scrapedTitle": "GORILLA MURDERS",
+    "matchStatus": "matched",
+    "skip": false,
+    "overwriteDescription": false,
+    "scrapedDate": "2014-08-05",
+    "vimeoUrl": "https://player.vimeo.com/video/67921740",
+    "synopsisParagraphs": [
+      "Unravelling the web of corruption and mystery surrounding the murders of six silverback gorillas in the Virunga National Forest."
+    ],
+    "credits": [
+      {
+        "role": "Executive Producer",
+        "name": "Jonathan Halperin"
+      }
+    ],
+    "attributionLines": [
+      "National Geographic Channel"
+    ],
+    "rawText": "GORILLA MURDERS\nUnravelling the web of corruption and mystery surrounding the murders of six silverback gorillas in the Virunga National Forest.\nExecutive Producer JONATHAN HALPERIN\nNational Geographic Channel\nFootage & Photography © National Geographic Television",
+    "warnings": []
+  },
+  {
+    "slug": "headspace",
+    "title": "Headspace Guide to Meditation",
+    "scrapedTitle": "HEADSPACE GUIDE TO MEDITATION",
+    "matchStatus": "matched",
+    "skip": false,
+    "overwriteDescription": false,
+    "scrapedDate": "2023-06-29",
+    "vimeoUrl": "https://player.vimeo.com/video/841014975?h=25a556bd01",
+    "synopsisParagraphs": [
+      "It's time to be kind to your mind. In partnership with Headspace, this 8-episode Netflix series shows how meditation can help in your daily life. From tackling stress to embracing gratitude, each episode first teaches the basics and techniques of the practice, and then concludes with a guided meditation. Push play, close your eyes, and explore the many benefits of meditation."
+    ],
+    "credits": [
+      {
+        "role": "Executive Producer",
+        "name": "Mark Mannucci"
+      },
+      {
+        "role": "Executive Producer",
+        "name": "Jonathan Halperin"
+      }
+    ],
+    "attributionLines": [
+      "Room 608, Headspace & Vox"
+    ],
+    "rawText": "HEADSPACE GUIDE TO MEDITATION\nIt's time to be kind to your mind. In partnership with Headspace, this 8-episode Netflix series shows how meditation can help in your daily life. From tackling stress to embracing gratitude, each episode first teaches the basics and techniques of the practice, and then concludes with a guided meditation. Push play, close your eyes, and explore the many benefits of meditation.\nExecutive Producers\nMARK MANNUCCI\nJONATHAN HALPERIN\nRoom 608, Headspace & Vox",
+    "warnings": []
+  },
+  {
+    "slug": "how-to-build-a-beating-heart",
+    "title": "How to Build a Beating Heart",
+    "scrapedTitle": "HOW TO BUILD A BEATING HEART",
+    "matchStatus": "matched",
+    "skip": false,
+    "overwriteDescription": false,
+    "scrapedDate": "2014-08-05",
+    "vimeoUrl": "https://player.vimeo.com/video/67919030",
+    "synopsisParagraphs": [
+      "The science of growing organs and body parts in the lab."
+    ],
+    "credits": [
+      {
+        "role": "Director",
+        "name": "Mark Mannucci"
+      },
+      {
+        "role": "Writer",
+        "name": "Mark Mannucci"
+      },
+      {
+        "role": "Producer",
+        "name": "Mark Mannucci"
+      },
+      {
+        "role": "Associate Producer",
+        "name": "Anna Bowers"
+      },
+      {
+        "role": "Executive Producer",
+        "name": "Jonathan Halperin"
+      }
+    ],
+    "attributionLines": [
+      "National Geographic Channel"
+    ],
+    "rawText": "HOW TO BUILD A BEATING HEART\nThe science of growing organs and body parts in the lab.\nDirector/Writer/Producer MARK MANNUCCI\nAssociate Producer ANNA BOWERS\nExecutive Producer JONATHAN HALPERIN\nNational Geographic Channel\nF ootage & Photography © National Geographic Television",
+    "warnings": [
+      "compound role Director+Writer+Producer -> 1 name(s)"
+    ]
+  },
+  {
+    "slug": "i-contain-multitudes",
+    "title": "I Contain Multitudes",
+    "scrapedTitle": "I CONTAIN MULTITUDES",
+    "matchStatus": "new",
+    "skip": false,
+    "overwriteDescription": false,
+    "scrapedDate": "2018-10-17",
+    "vimeoUrl": null,
+    "synopsisParagraphs": [
+      "Ed Yong, author of the New York Times bestseller I Contain Multitudes, has teamed up with HHMI Tangled Banks Studios for a series that explores the strange, wondrous, and vital realm of the microscopic. Meet scientists and the microbes that captivate them. Watch fascinating animal behavior that makes sense only in light of a microbial backstory. Discover how the living world that we see is shaped by an invisible world.",
+      "Our embrace of microbes, and theirs of us, is a pillar of life on Earth."
+    ],
+    "credits": [
+      {
+        "role": "Director",
+        "name": "Jonathan Halperin"
+      },
+      {
+        "role": "Director",
+        "name": "Mark Mannucci"
+      },
+      {
+        "role": "Writer",
+        "name": "Jonathan Halperin"
+      },
+      {
+        "role": "Writer",
+        "name": "Mark Mannucci"
+      },
+      {
+        "role": "Executive Producer",
+        "name": "Jonathan Halperin"
+      },
+      {
+        "role": "Executive Producer",
+        "name": "Mark Mannucci"
+      }
+    ],
+    "attributionLines": [],
+    "rawText": "I CONTAIN MULTITUDES\nEd Yong, author of the New York Times bestseller I Contain Multitudes, has teamed up with HHMI Tangled Banks Studios for a series that explores the strange, wondrous, and vital realm of the microscopic. Meet scientists and the microbes that captivate them. Watch fascinating animal behavior that makes sense only in light of a microbial backstory. Discover how the living world that we see is shaped by an invisible world.\nOur embrace of microbes, and theirs of us, is a pillar of life on Earth.\nDirectors, Writers & Executive Producers\nJONATHAN HALPERIN & MARK MANNUCCI\nWatch the full series online on Youtube .",
+    "warnings": [
+      "compound role Director+Writer+Executive Producer -> 2 name(s)",
+      "no Vimeo embed found"
+    ]
+  },
+  {
+    "slug": "inside-death-row",
+    "title": "Inside Death Row",
+    "scrapedTitle": "INSIDE DEATH ROW",
+    "matchStatus": "matched",
+    "skip": false,
+    "overwriteDescription": false,
+    "scrapedDate": "2014-08-05",
+    "vimeoUrl": "https://player.vimeo.com/video/67298698",
+    "synopsisParagraphs": [
+      "The death penalty in Texas told through the lives of three condemned men."
+    ],
+    "credits": [
+      {
+        "role": "Director",
+        "name": "Mark Mannucci"
+      },
+      {
+        "role": "Writer",
+        "name": "Mark Mannucci"
+      },
+      {
+        "role": "Producer",
+        "name": "Mark Mannucci"
+      },
+      {
+        "role": "Executive Producer",
+        "name": "Jonathan Halperin"
+      }
+    ],
+    "attributionLines": [
+      "National Geographic Channel"
+    ],
+    "rawText": "INSIDE DEATH ROW\nThe death penalty in Texas told through the lives of three condemned men.\nDirector/Writer/Producer MARK MANNUCCI\nExecutive Producer JONATHAN HALPERIN\nNational Geographic Channel\nFootage & Photography © National Geographic Television",
+    "warnings": [
+      "compound role Director+Writer+Producer -> 1 name(s)"
+    ]
+  },
+  {
+    "slug": "inside-guantanamo",
+    "title": "Inside Guantanamo",
+    "scrapedTitle": "INSIDE GUANTANAMO",
+    "matchStatus": "matched",
+    "skip": false,
+    "overwriteDescription": false,
+    "scrapedDate": "2014-08-05",
+    "vimeoUrl": "https://player.vimeo.com/video/67919029",
+    "synopsisParagraphs": [
+      "An inside look at the controversial Guantanamo Bay detention camp."
+    ],
+    "credits": [
+      {
+        "role": "Writer",
+        "name": "Jonathan Halperin"
+      },
+      {
+        "role": "Executive Producer",
+        "name": "Jonathan Halperin"
+      }
+    ],
+    "attributionLines": [
+      "National Geographic Channel"
+    ],
+    "rawText": "INSIDE GUANTANAMO\nAn inside look at the controversial Guantanamo Bay detention camp.\nWriter / Executive Producer\nJONATHAN HALPERIN\nNational Geographic Channel\nFootage & Photography © National Geographic Television",
+    "warnings": [
+      "compound role Writer+Executive Producer -> 1 name(s)"
+    ]
+  },
+  {
+    "slug": "journey-to-an-alien-moon",
+    "title": "Journey to an Alien Moon",
+    "scrapedTitle": "JOURNEY TO AN ALIEN MOON",
+    "matchStatus": "matched",
+    "skip": false,
+    "overwriteDescription": false,
+    "scrapedDate": "2014-08-05",
+    "vimeoUrl": "https://player.vimeo.com/video/67917409",
+    "synopsisParagraphs": [
+      "The search for life in our solar system."
+    ],
+    "credits": [
+      {
+        "role": "Director",
+        "name": "Mark Mannucci"
+      },
+      {
+        "role": "Writer",
+        "name": "Mark Mannucci"
+      },
+      {
+        "role": "Producer",
+        "name": "Mark Mannucci"
+      },
+      {
+        "role": "Executive Producer",
+        "name": "Jonathan Halperin"
+      }
+    ],
+    "attributionLines": [
+      "National Geographic Channel"
+    ],
+    "rawText": "JOURNEY TO AN ALIEN MOON\nThe search for life in our solar system.\nDirector/Writer/Producer MARK MANNUCCI\nExecutive Producer JONATHAN HALPERIN\nNational Geographic Channel\nFootage & Photography © National Geographic Television",
+    "warnings": [
+      "compound role Director+Writer+Producer -> 1 name(s)"
+    ]
+  },
+  {
+    "slug": "moment-of-death",
+    "title": "Moment of Death",
+    "scrapedTitle": "MOMENT OF DEATH",
+    "matchStatus": "matched",
+    "skip": false,
+    "overwriteDescription": false,
+    "scrapedDate": "2014-08-05",
+    "vimeoUrl": "https://player.vimeo.com/video/68568175",
+    "synopsisParagraphs": [
+      "The story of what happens to our brains and bodies when we die."
+    ],
+    "credits": [
+      {
+        "role": "Director",
+        "name": "Mark Mannucci"
+      },
+      {
+        "role": "Writer",
+        "name": "Mark Mannucci"
+      },
+      {
+        "role": "Producer",
+        "name": "Mark Mannucci"
+      },
+      {
+        "role": "Executive Producer",
+        "name": "Jonathan Halperin"
+      }
+    ],
+    "attributionLines": [
+      "National Geographic Channel"
+    ],
+    "rawText": "MOMENT OF DEATH\nThe story of what happens to our brains and bodies when we die.\nDirector/Writer/Producer MARK MANNUCCI\nExecutive Producer JONATHAN HALPERIN\nNational Geographic Channel\nFootage & Photography © National Geographic Television",
+    "warnings": [
+      "compound role Director+Writer+Producer -> 1 name(s)"
+    ]
+  },
+  {
+    "slug": "secret-lives-of-the-apostles",
+    "title": "Secret Lives of the Apostles",
+    "scrapedTitle": "SECRET LIVES OF THE APOSTLES",
+    "matchStatus": "matched",
+    "skip": false,
+    "overwriteDescription": false,
+    "scrapedDate": "2014-08-05",
+    "vimeoUrl": "https://player.vimeo.com/video/67921739",
+    "synopsisParagraphs": [
+      "After the sudden death of their leader, the disciples of Jesus must find a way forward without him."
+    ],
+    "credits": [
+      {
+        "role": "Director",
+        "name": "Mark Mannucci"
+      },
+      {
+        "role": "Writer",
+        "name": "Mark Mannucci"
+      },
+      {
+        "role": "Producer",
+        "name": "Mark Mannucci"
+      },
+      {
+        "role": "Producer",
+        "name": "Anna Bowers"
+      },
+      {
+        "role": "Executive Producer",
+        "name": "Jonathan Halperin"
+      }
+    ],
+    "attributionLines": [
+      "National Geographic Channel"
+    ],
+    "rawText": "SECRET LIVES OF THE APOSTLES\nAfter the sudden death of their leader, the disciples of Jesus must find a way forward without him.\nDirector/Writer/Producer MARK MANNUCCI\nCoordinating Producer ANNA BOWERS\nExecutive Producer JONATHAN HALPERIN\nNational Geographic Channel\nFootage & Photography © National Geographic Television",
+    "warnings": [
+      "compound role Director+Writer+Producer -> 1 name(s)"
+    ]
+  },
+  {
+    "slug": "the-cave",
+    "title": "The Cave",
+    "scrapedTitle": "THE CAVE",
+    "matchStatus": "matched",
+    "skip": false,
+    "overwriteDescription": false,
+    "scrapedDate": "2014-08-05",
+    "vimeoUrl": "https://player.vimeo.com/video/102637893",
+    "synopsisParagraphs": [
+      "Inside a world-class expedition in search of the deepest cave on Earth."
+    ],
+    "credits": [
+      {
+        "role": "Producer",
+        "name": "Zachary Fink"
+      },
+      {
+        "role": "Co-Producer",
+        "name": "Anna Bowers"
+      },
+      {
+        "role": "Executive Producer",
+        "name": "Jonathan Halperin"
+      },
+      {
+        "role": "Executive Producer",
+        "name": "Mark Mannucci"
+      }
+    ],
+    "attributionLines": [
+      "Discovery Channel"
+    ],
+    "rawText": "THE CAVE\nInside a world-class expedition in search of the deepest cave on Earth.\nProducer ZACHARY FINK\nCo-Producer ANNA BOWERS\nExecutive Producers\nJONATHAN HALPERIN & MARK MANNUCCI\nDiscovery Channel\nFootage & Photography © Discovery Communications",
+    "warnings": []
+  },
+  {
+    "slug": "the-day-the-60s-died",
+    "title": "The Day the '60s Died",
+    "scrapedTitle": "THE DAY THE '60s DIED",
+    "matchStatus": "matched",
+    "skip": false,
+    "overwriteDescription": false,
+    "scrapedDate": "2016-04-29",
+    "vimeoUrl": "https://player.vimeo.com/video/126828606",
+    "synopsisParagraphs": [
+      "The Day the '60s Died chronicles May 1970, the month in which four students were shot dead at Kent State. The mayhem that followed has been called the most divisive moment in American history since the Civil War. The Los Angeles Times wrote about the film: “Let[s] you taste the urgency of the moment.” Variety : “First rate...talks to all the right people.” The Cleveland Plain Dealer : “Brilliant job of bringing that violent, war-torn time into clear historical focus.” The New York Review of Books : “This is a remarkable film, with its parallel portraits of two sets of young Americans misused by the country’s leaders.”"
+    ],
+    "credits": [
+      {
+        "role": "Director",
+        "name": "Jonathan Halperin"
+      },
+      {
+        "role": "Writer",
+        "name": "Jonathan Halperin"
+      },
+      {
+        "role": "Writer",
+        "name": "Anna Bowers"
+      },
+      {
+        "role": "Producer",
+        "name": "Anna Bowers"
+      },
+      {
+        "role": "Executive Producer",
+        "name": "Mark Mannucci"
+      },
+      {
+        "role": "Executive Producer",
+        "name": "Jonathan Halperin"
+      }
+    ],
+    "attributionLines": [
+      "Room 608 for PBS"
+    ],
+    "rawText": "THE DAY THE '60s DIED\nNormal\n0\nfalse\nfalse\nfalse\nEN-US\nJA\nX-NONE\nThe Day the '60s Died chronicles May 1970, the month in which four students were shot dead at Kent State. The mayhem that followed has been called the most divisive moment in American history since the Civil War. The Los Angeles Times wrote about the film: “Let[s] you taste the urgency of the moment.” Variety : “First rate...talks to all the right people.” The Cleveland Plain Dealer : “Brilliant job of bringing that violent, war-torn time into clear historical focus.” The New York Review of Books : “This is a remarkable film, with its parallel portraits of two sets of young Americans misused by the country’s leaders.”\nDirector/Writer JONATHAN HALPERIN\nWriter/Producer ANNA BOWERS\nExecutive Producers\nMARK MANNUCCI & JONATHAN HALPERIN\nWatch the full program online at PBS.org\nRoom 608 for PBS\nFootage & Photography © Public Broadcasting Service",
+    "warnings": [
+      "compound role Director+Writer -> 1 name(s)",
+      "compound role Writer+Producer -> 1 name(s)"
+    ]
+  },
+  {
+    "slug": "history-of-white-people-in-america",
+    "title": "The History of White People in America",
+    "scrapedTitle": "THE HISTORY OF WHITE PEOPLE IN AMERICA",
+    "matchStatus": "matched",
+    "skip": false,
+    "overwriteDescription": false,
+    "scrapedDate": "2018-12-17",
+    "vimeoUrl": "https://player.vimeo.com/video/295675951",
+    "synopsisParagraphs": [
+      "The History of White People in America is the story of how skin became color, color became race, race became power. In 15 animated music videos, we tell the racial history of America. The first episode premiered at the 2018 Tribeca Film Festival."
+    ],
+    "credits": [
+      {
+        "role": "Director",
+        "name": "Jonathan Halperin"
+      }
+    ],
+    "attributionLines": [],
+    "rawText": "THE HISTORY OF WHITE PEOPLE IN AMERICA\nThe History of White People in America is the story of how skin became color, color became race, race became power. In 15 animated music videos, we tell the racial history of America. The first episode premiered at the 2018 Tribeca Film Festival.\nDirector\nJONATHAN HALPERIN",
+    "warnings": []
+  },
+  {
+    "slug": "times-square-time-machine",
+    "title": "Times Square Time Machine",
+    "scrapedTitle": "TIMES SQUARE TIME MACHINE",
+    "matchStatus": "matched",
+    "skip": false,
+    "overwriteDescription": false,
+    "scrapedDate": "2016-05-05",
+    "vimeoUrl": "https://player.vimeo.com/video/144764165",
+    "synopsisParagraphs": [
+      "You’re sitting just off of Times Square in midtown Manhattan in 2015 – but what are you sitting on top of? Zooming back a million years to look at the evolution of this little patch of land, this film offers an awe-inspiring view of the speed and ferocity with which humans have utterly transformed the globe."
+    ],
+    "credits": [
+      {
+        "role": "Producer",
+        "name": "Mark Mannucci"
+      },
+      {
+        "role": "Producer",
+        "name": "Jonathan Halperin"
+      },
+      {
+        "role": "Producer",
+        "name": "Anna Bowers"
+      },
+      {
+        "role": "Animator",
+        "name": "Dustin Grella"
+      }
+    ],
+    "attributionLines": [
+      "TED Talks: Science and Wonder.",
+      "A co-production of TED and ITVS in partnership with PBS."
+    ],
+    "rawText": "TIMES SQUARE TIME MACHINE\nNormal\n0\nfalse\nfalse\nfalse\nEN-US\nJA\nX-NONE\nYou’re sitting just off of Times Square in midtown Manhattan in 2015 – but what are you sitting on top of? Zooming back a million years to look at the evolution of this little patch of land, this film offers an awe-inspiring view of the speed and ferocity with which humans have utterly transformed the globe.\nConceived and Produced by\nMARK MANNUCCI, JONATHAN HALPERIN and ANNA BOWERS\nAnimation by DUSTIN GRELLA\nProduced For:\nTED Talks: Science and Wonder.\nA co-production of TED and ITVS in partnership with PBS.",
+    "warnings": []
+  },
+  {
+    "slug": "to-catch-a-smuggler",
+    "title": "To Catch a Smuggler",
+    "scrapedTitle": "TO CATCH A SMUGGLER",
+    "matchStatus": "matched",
+    "skip": false,
+    "overwriteDescription": false,
+    "scrapedDate": "2014-08-05",
+    "vimeoUrl": "https://player.vimeo.com/video/72420787",
+    "synopsisParagraphs": [
+      "An immersion into the airport you never see."
+    ],
+    "credits": [
+      {
+        "role": "Director",
+        "name": "Mark Mannucci"
+      },
+      {
+        "role": "Writer",
+        "name": "Mark Mannucci"
+      },
+      {
+        "role": "Producer",
+        "name": "Mark Mannucci"
+      },
+      {
+        "role": "Producer",
+        "name": "Anna Bowers"
+      },
+      {
+        "role": "Executive Producer",
+        "name": "Jonathan Halperin"
+      }
+    ],
+    "attributionLines": [
+      "National Geographic Channel"
+    ],
+    "rawText": "TO CATCH A SMUGGLER\nAn immersion into the airport you never see.\nDirector/Writer/Producer MARK MANNUCCI\nCoordinating Producer ANNA BOWERS\nExecutive Producer JONATHAN HALPERIN\nNational Geographic Channel\nFootage & Photography © National Geographic Television",
+    "warnings": [
+      "compound role Director+Writer+Producer -> 1 name(s)"
+    ]
+  },
+  {
+    "slug": "jax",
+    "title": "Turning Science Into Cures - The Jackson Laboratory",
+    "scrapedTitle": "Turning Science Into Cures",
+    "matchStatus": "matched",
+    "skip": false,
+    "overwriteDescription": false,
+    "scrapedDate": "2016-04-29",
+    "vimeoUrl": "https://player.vimeo.com/video/164739931",
+    "synopsisParagraphs": [
+      "Kelsey Avatar Segment",
+      "Turning Science Into Cures - The Jackson Laboratory"
+    ],
+    "credits": [
+      {
+        "role": "Producer",
+        "name": "Mark Mannucci"
+      },
+      {
+        "role": "Writer",
+        "name": "Mark Mannucci"
+      },
+      {
+        "role": "Executive Producer",
+        "name": "Jon Halperin"
+      },
+      {
+        "role": "Executive Producer",
+        "name": "Mark Mannucci"
+      }
+    ],
+    "attributionLines": [],
+    "rawText": "Turning Science Into Cures\nKelsey Avatar Segment\nTurning Science Into Cures - The Jackson Laboratory\nProduced & Written by MARK MANNUCCI\nExecutive Producers\nJON HALPERIN & MARK MANNUCCI",
+    "warnings": [
+      "compound role Producer+Writer -> 1 name(s)",
+      "short synopsis line — possible heading (review)"
+    ]
+  }
+]

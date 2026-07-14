@@ -1,5 +1,6 @@
 import Image from 'next/image'
-import { MobileNav } from '../components/MobileNav'
+import { MobileHamburger } from '../components/MobileHamburger'
+import { ContactForm } from '../components/ContactForm'
 
 const logos: { src: string; alt: string }[] = [
   { src: '/logos/76th-emmys-gold-logo 1.png', alt: 'Emmy Awards' },
@@ -24,11 +25,29 @@ const portraits: { src: string; origin: 'left' | 'center' | 'right' }[] = [
   { src: '/portraits/Ricciardi_01.webp', origin: 'right' },
 ]
 
+const awards: string[] = [
+  '3 News & Documentary Emmy Awards',
+  'Primetime Emmy Award',
+  '18 Emmy Nominations',
+  'Television Academy Honors Award',
+  'Wildscreen Award, Best People and Wildlife Film',
+  'Jackson Wildlife Award, Outstanding Achievement',
+  '4 Daytime Entertainment Emmy Awards',
+  '4 Peabody Awards',
+  '2 Webby Nominations',
+  'SXSW, Audience Award',
+  'BANFF, Best Mountain Wildlife and Natural History Award',
+  '15 New York Emmy Awards',
+  '2 Gold Hugo Awards',
+  'Wildscreen Panda Award, Best Series',
+]
+
 export default async function About() {
   return (
     <div className="dot-grid-bg min-h-screen">
+      <MobileHamburger />
       <div className="p-2 md:p-8 md:pt-24 max-w-5xl mx-auto">
-        <div className="flex justify-center gap-4 flex-wrap mb-8">
+        <div className="flex justify-between gap-4 flex-wrap mb-8">
           {portraits.map(({ src, origin }) => (
             <Image
               key={src}
@@ -42,63 +61,42 @@ export default async function About() {
           ))}
         </div>
 
-        <div className="bg-[#C6B79C] outline-1 outline-color-[#515151] drop-shadow-md">
-          <p>
-            Mark Mannucci and Jon Halperin have been collaborating since 2007. Jon had been a fan of
-            Mark&apos;s PBS series Egg The Arts Show, so when he was tapped to EP National
-            Geographic Explorer his very first directing hire was Mark. Mark went on to make six
-            films for Jon at Explorer. His films were among the highest rated on the series and won
-            some of the most prestigious awards in television. When Jon decided to leave Geographic
-            in 2012 and move to New York, the two decided to hang a shingle together with a simple
-            mission: build a company of filmmakers and craftspeople who value intense collaboration
-            and creatively challenging projects. Their first office was in the heart of Hell&apos;s
-            Kitchen and is now located just north of the city on the Hudson River in a 100-year-old
-            brewery building. Both offices were built around large open spaces where ideas can be
-            exchanged freely.
-          </p>
-          <p className="min-w-[55ch]"></p>
-          <p>
-            To work at Room 608, one has to be creatively fearless, willing to take risks, to work
-            fluidly with others — in other words you have to be smart and enjoy the process of
-            creating as a team. Jon and Mark love to nurture the creativity and imagination of their
-            teams – as gratifying as that is for them personally, the ultimate benefit is work that
-            everyone can all be proud of: that is imaginative, high-quality, and profitable.
-          </p>
-          <p className="min-w-[55ch]"></p>
-          <p>
-            In the past eight years, Jon and Mark have made films and series for Amazon, Netflix,
-            Vox, PBS, PBS Digital, ITVS, The Atlantic, The World, History, and National Geographic.
-            Their work has been screened at festivals around the world and In 2017, they won a
-            National News and Documentary Emmy for Best Science film for A Year In Space.
-            Collectively, in their careers, they have won two Peabody Awards, seven Emmys, and have
-            been nominated another 14 times. They are currently producing a kids&apos; music series
-            for a major streamer, a feature documentary for Netflix, a feature documentary for Time,
-            and a five-hour series for PBS.
-          </p>
-          <p className="min-w-[55ch]"></p>
-          <p>
-            Jon and Mark are interested in telling the best factual stories, in the most visually
-            stimulating way they can, with the most creative and talented craftspeople in the
-            business. Their ideas stretch across the whole of factual - science, history, crime,
-            even horror. Teams at Room 608 can produce and direct everything from innovative
-            animation to intimate verite documentaries.
+        <div className="">
+          <p className="bg-none">
+            Mark Mannucci and Jon Halperin have been collaborating since 2007. In the past 14 years,
+            through their company, Room 608, Jon and Mark have made films and series for Amazon,
+            YouTube, Netflix, Vox, PBS, PBS Digital, ITVS, The Atlantic, TED, The World, History,
+            and National Geographic. Their work has been screened at festivals around the world and
+            In 2017, they won a National News and Documentary Emmy for Best Science film for A Year
+            In Space. Collectively, in their careers, they have won two Peabody Awards, eight Emmys,
+            and have been nominated another 18 times. Their most recent series, Breaking the
+            Deadlock, has been nominated for two Emmys. Teams at Room 608 can produce anything from
+            vertical animated shorts to multimillion dollar international co-productions.
           </p>
         </div>
 
-        <div className="mt-12 flex flex-wrap items-center justify-center gap-8">
-          {logos.map(({ src, alt }) => (
-            <Image
-              key={src}
-              src={src}
-              alt={alt}
-              width={120}
-              height={60}
-              className="h-8 md:h-12 mb-2 md:mb-0 w-auto object-contain select-none invert mix-blend-darken"
-            />
-          ))}
+        <div className="mt-8 grid grid-cols-[auto_auto]">
+          <h2 className="font-bold mb-3">Awards</h2>
+          <div></div>
+          <ul className="grid">
+            {awards.map((award) => (
+              <li key={award}>{award}</li>
+            ))}
+          </ul>
+          <div className="flex flex-wrap items-center justify-end content-between gap-8">
+            {logos.map(({ src, alt }) => (
+              <Image
+                key={src}
+                src={src}
+                alt={alt}
+                width={120}
+                height={60}
+                className="h-8 md:h-12 mb-2 md:mb-0 w-auto object-contain select-none invert mix-blend-darken"
+              />
+            ))}
+          </div>{' '}
         </div>
-
-        <MobileNav />
+        <ContactForm />
       </div>
     </div>
   )

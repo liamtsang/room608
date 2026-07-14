@@ -70,6 +70,7 @@ export interface Config {
     users: User;
     media: Media;
     projects: Project;
+    'contact-submissions': ContactSubmission;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -80,6 +81,7 @@ export interface Config {
     users: UsersSelect<false> | UsersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     projects: ProjectsSelect<false> | ProjectsSelect<true>;
+    'contact-submissions': ContactSubmissionsSelect<false> | ContactSubmissionsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -165,6 +167,10 @@ export interface Media {
 export interface Project {
   id: number;
   title: string;
+  /**
+   * Auto-generated from the title. Used in the project URL (/projects/<slug>).
+   */
+  slug?: string | null;
   date: string;
   credits?:
     | {
@@ -210,6 +216,26 @@ export interface Project {
     [k: string]: unknown;
   } | null;
   images?: (number | Media)[] | null;
+  /**
+   * Optional laser-scan video overlaid on hover. Black background, screen-blended.
+   */
+  scanEffect?: (number | null) | Media;
+  /**
+   * Vimeo video URL. For unlisted videos keep the privacy hash, e.g. https://player.vimeo.com/video/123456789?h=abcdef0123
+   */
+  vimeoUrl?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "contact-submissions".
+ */
+export interface ContactSubmission {
+  id: number;
+  name: string;
+  email: string;
+  message: string;
   updatedAt: string;
   createdAt: string;
 }
@@ -248,6 +274,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'projects';
         value: number | Project;
+      } | null)
+    | ({
+        relationTo: 'contact-submissions';
+        value: number | ContactSubmission;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -335,6 +365,7 @@ export interface MediaSelect<T extends boolean = true> {
  */
 export interface ProjectsSelect<T extends boolean = true> {
   title?: T;
+  slug?: T;
   date?: T;
   credits?:
     | T
@@ -352,6 +383,19 @@ export interface ProjectsSelect<T extends boolean = true> {
       };
   description?: T;
   images?: T;
+  scanEffect?: T;
+  vimeoUrl?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "contact-submissions_select".
+ */
+export interface ContactSubmissionsSelect<T extends boolean = true> {
+  name?: T;
+  email?: T;
+  message?: T;
   updatedAt?: T;
   createdAt?: T;
 }

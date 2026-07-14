@@ -15,6 +15,12 @@
 		"directory": ".open-next/assets",
 		"binding": "ASSETS",
 	},
+	"vars": {
+		// Canonical site origin for SEO (canonical URLs, OpenGraph, sitemap, JSON-LD).
+		// Read server-side at request time via getSiteUrl(); a plain (non-NEXT_PUBLIC)
+		// var so this Worker runtime value actually takes effect.
+		"SITE_URL": "https://room608.liamtsang.workers.dev",
+	},
 	"d1_databases": [
 		{
 			"binding": "D1",

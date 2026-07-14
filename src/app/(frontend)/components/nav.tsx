@@ -14,12 +14,12 @@ export default function Nav() {
   const pathname = usePathname()
 
   return (
-    <nav className="hidden md:flex flex-row gap-4 p-8 fixed top-0 isolate z-10">
+    <nav className="hidden md:flex flex-row p-8 fixed top-0 isolate z-10">
       <Image
         src="/logo hd.png"
         alt="room608 logo"
-        width={50}
-        height={50}
+        width={30}
+        height={30}
         className="border border-[#C6B79C]"
       />
       {links.map(({ href, label }) => {
@@ -28,8 +28,8 @@ export default function Nav() {
           <Link
             key={href}
             href={href}
-            className={`bg-[#282828] border-2 border-[#C6B79C] outline outline-black px-2 py-0 w-fit ${
-              isActive ? 'text-white font-bold' : 'text-[rgba(255,255,255,0.5)] font-normal'
+            className={`border border-[#C6B79C] border-l-0 w-fit px-2 font-sans ${
+              isActive ? 'text-black font-bold' : 'text-[rgba(0,0,0,0.5)] font-normal'
             }`}
           >
             {label}

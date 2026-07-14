@@ -19,6 +19,8 @@
     "lint": "cross-env NODE_OPTIONS=--no-deprecation next lint",
     "payload": "cross-env NODE_OPTIONS=--no-deprecation payload",
     "preview": "opennextjs-cloudflare build --env=$CLOUDFLARE_ENV && opennextjs-cloudflare preview --env=$CLOUDFLARE_ENV",
+    "scrape:projects": "cross-env NODE_OPTIONS=--no-deprecation tsx src/scripts/scrape-projects.ts",
+    "import:projects": "cross-env NODE_OPTIONS=--no-deprecation tsx src/scripts/import-projects.ts",
     "test": "pnpm run test:int && pnpm run test:e2e",
     "test:e2e": "cross-env NODE_OPTIONS=\"--no-deprecation --import=tsx/esm\" playwright test --config=playwright.config.ts",
     "test:int": "cross-env NODE_OPTIONS=--no-deprecation vitest run --config ./vitest.config.mts"
@@ -31,7 +33,9 @@
     "@payloadcms/storage-r2": "3.76.1",
     "@payloadcms/ui": "3.76.1",
     "@tailwindcss/postcss": "^4.1.18",
+    "@vimeo/player": "^2.30.4",
     "cross-env": "^7.0.3",
+    "dialkit": "^1.3.0",
     "dotenv": "16.4.7",
     "graphql": "^16.8.1",
     "motion": "^12.34.0",
@@ -48,6 +52,7 @@
     "@types/node": "22.19.9",
     "@types/react": "19.2.9",
     "@types/react-dom": "19.2.3",
+    "@types/vimeo__player": "^2.18.3",
     "@vitejs/plugin-react": "4.5.2",
     "eslint": "^9.16.0",
     "eslint-config-next": "15.4.11",
@@ -60,8 +65,7 @@
     "wrangler": "~4.61.1"
   },
   "engines": {
-    "node": "^18.20.2 || >=20.9.0",
-    "pnpm": "^9 || ^10"
+    "node": "^18.20.2 || >=20.9.0"
   },
   "pnpm": {
     "onlyBuiltDependencies": [

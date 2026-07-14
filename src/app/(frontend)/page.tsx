@@ -3,6 +3,11 @@ import config from '@/payload.config'
 import { Workspace } from './Workspace'
 import './styles.css'
 
+// Render at request time against the live D1 (not prerendered at build). This
+// keeps `next build` from connecting to the database — avoiding the dev-mode
+// migration prompt — and lets CMS edits appear without a redeploy.
+export const dynamic = 'force-dynamic'
+
 export default async function HomePage() {
   const payloadConfig = await config
   const payload = await getPayload({ config: payloadConfig })
